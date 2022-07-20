@@ -1,0 +1,58 @@
+name: "Git Status"
+description: "Fail the workflow or git push based on git status"
+inputs:
+  fail-if-not-clean:
+    description: "Fail the workflow if git status is not clean."
+    required: true
+    default: true
+  push-if-not-clean:
+    description: "Push changes if git status is not clean."
+    required: true
+    default: false
+runs:
+  using: "composite"
+  outputs:
+    status:
+      description: "Is git status clean or dirty?"
+      value: ${{ steps.git-status.outputs.status }}
+  steps:
+    - id: git-status
+      name: git status
+      shell: bash
+      run: |
+        if git rev-parse --verify HEAD >/dev/null 2>&1
+        then
+          against=HEAD
+        else
+          # Initial commit: diff against an empty tree object
+          against=$(git hash-object -t tree /dev/null)
+        fi
+        if test $(git diff --name-only $against | wc -l) != 0
+        then
+          echo "::set-output name=status::dirty"
+        else
+          echo "::set-output name=status::clean"
+        fi
+
+    - id: exit-1
+      name: exit 1
+      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.fail-if-not-clean == 'true' }}
+      shell: bash
+      run: exit 1
+
+    - id: git-commit
+      name: git commit
+      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' }}
+      shell: bash
+      run: |
+        git add -A
+        git commit -m 'Updated by GitHub Workflow Git Status Action'
+
+    - id: git-push
+      name: git push
+      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' }}
+      shell: bash
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git push
