@@ -49,3 +49,41 @@ jobs:
           then
             exit 1;
           fi
+
+  test_dirty_push:
+    name: Test Dirty Push
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Config Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Make commit
+        run: |
+          git checkout -b "test-branch-on-`git rev-parse --verify HEAD`"
+          touch `git rev-parse --verify HEAD`
+          git add -A
+          git commit -am "Test commit for `git rev-parse --verify HEAD`"
+          git push -u origin "test-branch-on-`git rev-parse --verify HEAD`"
+
+      - name: Open PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create -df -r "github-actions[bot]" -t "Test PR for `git rev-parse --verify HEAD^`" -l "tests"
+
+      - name: Check PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr check --watch
+
+      - name: Close PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr close -d -c "Test finished. Closing PR."
