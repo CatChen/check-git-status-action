@@ -1,4 +1,4 @@
-name: "Git Status"
+name: "Check Git Status"
 description: "Fail the workflow or git push based on git status"
 inputs:
   fail-if-not-clean:
@@ -56,3 +56,6 @@ runs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git push
+branding:
+  icon: "plus-square"
+  color: "blue"
