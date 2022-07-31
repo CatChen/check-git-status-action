@@ -10,7 +10,7 @@ inputs:
     required: true
     default: false
 output:
-  status:
+  git-status:
     description: "Is git status clean or dirty?"
     value: ${{ steps.git-status.outputs.status }}
 runs:
