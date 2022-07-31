@@ -27,6 +27,7 @@ runs:
           # Initial commit: diff against an empty tree object
           against=$(git hash-object -t tree /dev/null)
         fi
+        git add -AN
         if test $(git diff --name-only $against | wc -l) != 0
         then
           echo "::set-output name=status::dirty"
@@ -45,8 +46,7 @@ runs:
       if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' }}
       shell: bash
       run: |
-        git add -A
-        git commit -m 'Updated by GitHub Workflow Git Status Action'
+        git commit -am 'Updated by GitHub Workflow Git Status Action'
 
     - id: git-push
       name: git push
