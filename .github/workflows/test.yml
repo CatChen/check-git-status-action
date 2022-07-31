@@ -49,3 +49,59 @@ jobs:
           then
             exit 1;
           fi
+
+  test_dirty_push:
+    name: Test Dirty Push
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Config Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Get base branch name
+        id: get-base-branch-name
+        run: |
+          echo `git branch`
+          echo "::set-output name=base-branch-name::`git branch --show-current`"
+
+      - name: Make commit
+        env:
+          SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          git checkout -b "test-branch-on-$SHA-by-$RUN_ID"
+          touch $SHA
+          git add -A
+          git commit -am "Test commit for $SHA by $RUN_ID"
+          git push --set-upstream origin "test-branch-on-$SHA-by-$RUN_ID"
+
+      - name: Open PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          BASE_BRANCH_NAME: ${{ steps.get-base-branch-name.outputs.base-branch-name }}
+        run: |
+          gh pr create -d --base "$BASE_BRANCH_NAME" --title "Test PR for $SHA by $RUN_ID" --body "Test PR for $SHA by $RUN_ID"
+
+      - name: Check PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          sleep 10
+          gh pr checks --watch
+
+      - name: Close PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          BASE_BRANCH_NAME: ${{ steps.get-base-branch-name.outputs.base-branch-name }}
+        run: |
+          TEST_BRANCH_NAME=`gh pr view | grep 'number:' | cut -f 2`
+          git checkout "$BASE_BRANCH_NAME"
+          gh pr close $TEST_BRANCH_NAME -d -c "Finished testing $SHA by $RUN_ID. Closing PR."
