@@ -1,8 +1,9 @@
 name: Test
 
 on:
-  pull_request:
   push:
+    branches: [main]
+  pull_request:
     branches: [main, "[0-9]+-[0-9]+-*"]
   workflow_dispatch:
 
@@ -49,3 +50,84 @@ jobs:
           then
             exit 1;
           fi
+
+  test_dirty_push:
+    name: Test Dirty Push
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Config Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Get base branch name
+        id: get-base-branch-name
+        run: |
+          echo "::set-output name=base-branch-name::`git branch --show-current`"
+          echo "::debug::Base branch is `git branch --show-current`"
+          echo "::debug::Base commit is `git rev-parse --verify HEAD`"
+
+      - name: Make commit
+        env:
+          SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          echo "::debug::Run ID is $RUN_ID"
+          git checkout -b "test-branch-on-$SHA-by-$RUN_ID"
+          echo "::debug::Test branch is `git branch --show-current`"
+          touch $SHA
+          git add -A
+          git commit -am "Test commit for $SHA by $RUN_ID"
+          echo "::debug::Test commit is `git rev-parse --verify HEAD`"
+
+      - name: Git push
+        env:
+          SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          BASE_BRANCH_NAME: ${{ steps.get-base-branch-name.outputs.base-branch-name }}
+        run: |
+          git push -f --set-upstream origin "test-branch-on-$SHA-by-$RUN_ID"
+          echo "::debug::Remote test branch is origin/`git branch --show-current`"
+
+      - name: Open PR
+        id: open-pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          BASE_BRANCH_NAME: ${{ steps.get-base-branch-name.outputs.base-branch-name }}
+        run: |
+          gh pr create -d --base "$BASE_BRANCH_NAME" --title "Test PR for $SHA by $RUN_ID" --body "Test PR for $SHA by $RUN_ID"
+          TEST_PR_NUMBER=`gh pr view | grep 'number:' | cut -f 2`
+          echo "::set-output name=test-pr-number::$TEST_PR_NUMBER"
+          echo "::debug::Test PR number is $TEST_PR_NUMBER"
+
+      - name: Check PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          sleep 10
+          gh pr checks --watch
+          echo "::debug::Test PR Checks\n\n`gh pr checks"
+
+      - name: Close PR
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          BASE_BRANCH_NAME: ${{ steps.get-base-branch-name.outputs.base-branch-name }}
+          TEST_PR_NUMBER: ${{ steps.open-pr.outputs.test-pr-number }}
+        run: |
+          if [ $BASE_BRANCH_NAME != '' ]
+          then
+            git checkout "$BASE_BRANCH_NAME"
+            echo "::debug::Base branch is `git branch --show-current`"
+          else
+            git checkout "$SHA"
+            echo "::debug::Base commit is `git rev-parse --verify HEAD`"
+          fi
+          gh pr close $TEST_PR_NUMBER -d -c "Finished testing $SHA by $RUN_ID. Closing PR."
