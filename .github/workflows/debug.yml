@@ -2,10 +2,7 @@ name: Debug
 
 on:
   push:
-    branches: [main]
   pull_request:
-    branches:
-      [main, "[0-9]+-[0-9]+-*", "workflows/tests/[0-9]+-[0-9]+-on-[a-fA-F0-9]+"]
   workflow_dispatch:
 
 jobs:
