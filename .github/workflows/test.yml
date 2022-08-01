@@ -8,6 +8,19 @@ on:
   workflow_dispatch:
 
 jobs:
+  debug_information:
+    name: Debug Information
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Print contexts
+        env:
+          GITHUB: ${{ toJSON(github) }}
+          JOB: ${{ toJSON(job) }}
+        run: |
+          echo "::debug::$GITHUB"
+          echo "::debug::$JOB"
+
   test_clean:
     name: Test Clean
     runs-on: ubuntu-latest
