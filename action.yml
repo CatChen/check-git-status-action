@@ -9,7 +9,7 @@ inputs:
     description: "Push changes if git status is not clean."
     required: true
     default: false
-output:
+outputs:
   status:
     description: "Is git status clean or dirty?"
     value: ${{ steps.git-status.outputs.status }}
