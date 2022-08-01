@@ -41,7 +41,7 @@ runs:
       shell: bash
       run: exit 1
 
-    - id git-config
+    - id: git-config
       name: git config
       if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' }}
       run: |
