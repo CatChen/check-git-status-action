@@ -25,3 +25,27 @@ jobs:
           then
             exit 1;
           fi
+
+  test_dirty_failure:
+    name: Test Dirty Failure
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Make dirty
+        run: |
+          touch `git rev-parse --verify HEAD`
+
+      - uses: CatChen/check-git-status-action@v0.1.4
+        id: test-action
+        continue-on-error: true
+
+      - name: Verify outputs
+        env:
+          TEST_ACTION_OUTPUT: ${{ steps.test-action.outputs.status }}
+        run: |
+          if [[ $TEST_ACTION_OUTPUT != "dirty" ]]
+          then
+            exit 1;
+          fi
