@@ -1,0 +1,25 @@
+name: Debug
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches:
+      [main, "[0-9]+-[0-9]+-*", "workflows/tests/[0-9]+-[0-9]+-on-[a-fA-F0-9]+"]
+  workflow_dispatch:
+
+jobs:
+  debug_information:
+    name: Debug Information
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Print contexts
+        env:
+          GITHUB: ${{ toJSON(github) }}
+          JOB: ${{ toJSON(job) }}
+          INPUTS: ${{ toJSON(inputs) }}
+        run: |
+          echo "::debug::github = $GITHUB"
+          echo "::debug::job = $JOB"
+          echo "::debug::inputs = $INPUTS"
