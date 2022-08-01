@@ -18,6 +18,8 @@ jobs:
         env:
           GITHUB: ${{ toJSON(github) }}
           JOB: ${{ toJSON(job) }}
+          INPUTS: ${{ toJSON(inputs) }}
         run: |
           echo "::debug::github = $GITHUB"
           echo "::debug::job = $JOB"
+          echo "::debug::inputs = $INPUTS"
