@@ -4,7 +4,8 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main, "[0-9]+-[0-9]+-*"]
+    branches:
+      [main, "[0-9]+-[0-9]+-*", "workflows/tests/[0-9]+-on-[a-fA-F0-9]+"]
   workflow_dispatch:
 
 jobs:
@@ -18,13 +19,13 @@ jobs:
           GITHUB: ${{ toJSON(github) }}
           JOB: ${{ toJSON(job) }}
         run: |
-          echo "::debug::$GITHUB"
-          echo "::debug::$JOB"
+          echo "::debug::github = $GITHUB"
+          echo "::debug::job = $JOB"
 
   test_clean:
     name: Test Clean
+    if: "!startsWith(github.head_ref, 'workflows/tests/')"
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
 
@@ -42,8 +43,8 @@ jobs:
 
   test_dirty_failure:
     name: Test Dirty Failure
+    if: "!startsWith(github.head_ref, 'workflows/tests/')"
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
 
@@ -66,8 +67,8 @@ jobs:
 
   test_dirty_push:
     name: Test Dirty Push
+    if: "!startsWith(github.head_ref, 'workflows/tests/')"
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
 
