@@ -113,7 +113,8 @@ jobs:
         run: |
           sleep 10
           gh pr checks --watch
-          echo "::debug::Test PR Checks\n\n`gh pr checks`"
+          sleep 10
+          gh pr checks --watch
 
       - name: Close PR
         if: ${{ always() }}
