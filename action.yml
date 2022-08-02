@@ -12,7 +12,7 @@ inputs:
   github-token:
     description:
     required: true
-    default: ${{ secrets.GITHUB_TOKEN }}
+    default: ${{ github.token }}
 outputs:
   status:
     description: "Is git status clean or dirty?"
@@ -66,7 +66,7 @@ runs:
       shell: bash
       env:
         BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ github.token }}
         OVERRIDE_TOKEN: ${{ inputs.github-token }}
       run: |
         git checkout -b "$BRANCH_NAME"
