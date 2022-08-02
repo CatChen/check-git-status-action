@@ -73,7 +73,7 @@ runs:
         if [[ $GITHUB_TOKEN != $OVERRIDE_TOKEN ]]
         then
           echo "git push -f --set-upstream `git remote get-url origin --push | sed s/^git@/$OVERRIDE_TOKEN/` $BRANCH_NAME
-          git push -f --set-upstream `git remote get-url origin --push | sed s/^git@/$OVERRIDE_TOKEN/` "$BRANCH_NAME"
+          git push -f --set-upstream `git remote get-url origin --push | sed 's/^https:\/\//$OVERRIDE_TOKEN/'` "$BRANCH_NAME"
         else
           echo "git push -f --set-upstream origin $BRANCH_NAME
           git push -f --set-upstream origin "$BRANCH_NAME"
