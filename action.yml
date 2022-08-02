@@ -68,7 +68,9 @@ runs:
         git checkout -b "$BRANCH_NAME"
         git remote
         git branch -a
-        git push -f --set-upstream pull "$BRANCH_NAME"
+        git show-ref
+        git ls-remote
+        git push -f --set-upstream origin "$BRANCH_NAME"
 branding:
   icon: "edit-3"
   color: "red"
