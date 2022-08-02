@@ -57,7 +57,7 @@ runs:
       name: git commit
       if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' && github.event_name == 'pull_request' }}
       shell: bash
-      run: |g
+      run: |
         git commit -am 'Updated by GitHub Workflow Check Git Status Action'
 
     - id: git-push
