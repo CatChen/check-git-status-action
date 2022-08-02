@@ -6,7 +6,7 @@ on:
 
 jobs:
   test_dirty_push_in_pull_request:
-    if: ${{ false }}
+    if: ${{ startsWith(github.head_ref, 'workflows/tests/') }}
     name: Test Dirty Failure in Pull Request
     outputs:
       touched-filename: ${{ steps.make-dirty.outputs.touched-filename }}

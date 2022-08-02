@@ -116,7 +116,7 @@ jobs:
           echo "::debug::Test PR Checks\n\n`gh pr checks`"
 
       - name: Close PR
-        if: always()
+        if: ${{ always() }}
         continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -126,6 +126,7 @@ jobs:
           BASE_BRANCH_NAME: ${{ github.head_ref }}
           TEST_PR_NUMBER: ${{ steps.open-pr.outputs.test-pr-number }}
         run: |
+          exit 0
           if [ $BASE_BRANCH_NAME != '' ]
           then
             git checkout "$BASE_BRANCH_NAME"
@@ -137,7 +138,7 @@ jobs:
           gh pr close $TEST_PR_NUMBER -d -c "Finished testing $SHA by $RUN_NUMBER-$RUN_ATTEMPT. Closing PR."
 
       - name: Delete remote branch
-        if: always()
+        if: ${{ always() }}
         continue-on-error: true
         env:
           SHA: ${{ github.sha }}
@@ -145,4 +146,5 @@ jobs:
           RUN_ATTEMPT: ${{ github.run_attempt }}
           TEST_BRANCH_NAME: ${{ format('workflows/tests/{0}-{1}-on-{2}', github.run_number, github.run_attempt, github.sha) }}
         run: |
+          exit 0
           git push -d origin "$TEST_BRANCH_NAME"
