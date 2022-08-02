@@ -70,6 +70,7 @@ jobs:
           RUN_ATTEMPT: ${{ github.run_attempt }}
           BASE_BRANCH_NAME: ${{ github.head_ref }}
           TEST_BRANCH_NAME: ${{ format('workflows/tests/{0}-{1}-on-{2}', github.run_number, github.run_attempt, github.sha) }}
+          BASE_PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           echo "::debug::Run number is $RUN_NUMBER"
           echo "::debug::Run attempt is $RUN_ATTEMPT"
@@ -80,7 +81,7 @@ jobs:
           echo "::debug::Test branch is `git branch --show-current`"
           touch $SHA
           git add -A
-          git commit -am "Test commit for $SHA by $RUN_NUMBER-$RUN_ATTEMPT"
+          git commit -am "Test commit for #$BASE_PR_NUMBER ($SHA) by $RUN_NUMBER-$RUN_ATTEMPT"
           echo "::debug::Test commit is `git rev-parse --verify HEAD`"
 
       - name: Git push
