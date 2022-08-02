@@ -69,15 +69,15 @@ runs:
         GITHUB_TOKEN: ${{ github.token }}
         OVERRIDE_TOKEN: ${{ inputs.github-token }}
       run: |
-        git checkout -b "$BRANCH_NAME"
+        git fetch --unshallow origin
         if [[ $GITHUB_TOKEN != $OVERRIDE_TOKEN ]]
         then
           OVERRIDE_REMOTE=$(git remote get-url origin --push | sed 's/^https:\/\//https:\/\/'"$OVERRIDE_TOKEN"'@/')
-          echo "git push -f --set-upstream $OVERRIDE_REMOTE $BRANCH_NAME"
-          git push -f --set-upstream "$OVERRIDE_REMOTE" "$BRANCH_NAME"
+          echo "git push -f --set-upstream $OVERRIDE_REMOTE HEAD:refs/heads/$BRANCH_NAME"
+          git push -f --set-upstream "$OVERRIDE_REMOTE" "HEAD:refs/heads/$BRANCH_NAME"
         else
-          echo "git push -f --set-upstream origin $BRANCH_NAME"
-          git push -f --set-upstream origin "$BRANCH_NAME"
+          echo "git push -f --set-upstream origin HEAD:refs/heads/$BRANCH_NAME"
+          git push -f --set-upstream origin "HEAD:refs/heads/$BRANCH_NAME"
         fi
 branding:
   icon: "edit-3"
