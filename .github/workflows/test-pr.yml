@@ -1,0 +1,53 @@
+name: Test Pull Request
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test_dirty_push_in_pull_request:
+    if: ${{ startsWith(github.head_ref, 'workflows/tests/') }}
+    name: Test Dirty Failure in Pull Request
+    outputs:
+      touched-filename: ${{ steps.make-dirty.outputs.touched-filename }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Make dirty
+        id: make-dirty
+        run: |
+          echo "::set-output name=touched-filename::`git rev-parse --verify HEAD`"
+          touch `git rev-parse --verify HEAD`
+
+      - uses: CatChen/check-git-status-action@v0.1.28
+        id: test-action
+        with:
+          fail-if-not-clean: false
+          push-if-not-clean: true
+          github-token: ${{ secrets.REPO_TOKEN }}
+
+      - name: Verify outputs
+        env:
+          TEST_ACTION_OUTPUT: ${{ steps.test-action.outputs.status }}
+        run: |
+          if [[ $TEST_ACTION_OUTPUT != "dirty" ]]
+          then
+            exit 1;
+          fi
+
+  verify_dirty_push_in_pull_request:
+    name: Verify Dirty Failure in Pull Request
+    if: ${{ startsWith(github.head_ref, 'workflows/tests/') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Verify outputs
+        env:
+          TOUCHED_FILENAME: ${{ needs.test_dirty_push_in_pull_request.outputs.touched-filename }}
+        run: |
+          if [[ ! -f "$TOUCHED_FILENAME" ]]
+          then
+            exit 1
+          fi
