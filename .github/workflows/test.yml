@@ -151,7 +151,7 @@ jobs:
     name: Test Dirty Failure in Pull Request
     if: ${{ startsWith(github.head_ref, 'workflows/tests/') }}
     outputs:
-      touched-filename: ${{ steps.make-dirty.touched-filename }}
+      touched-filename: ${{ steps.make-dirty.outputs.touched-filename }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
