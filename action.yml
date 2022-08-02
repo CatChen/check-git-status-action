@@ -70,8 +70,7 @@ runs:
         git show-ref
         echo "git ls-remote"
         git ls-remote
-        echo "git sparse-checkout list"
-        git sparse-checkout list
+        echo "git push -f --set-upstream origin $BRANCH_NAME"
         git push -f --set-upstream origin "$BRANCH_NAME"
 branding:
   icon: "edit-3"
