@@ -41,7 +41,7 @@ runs:
       shell: bash
       run: exit 1
 
-    - id git-config
+    - id: git-config
       name: git config
       if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' }}
       run: |
@@ -53,6 +53,8 @@ runs:
       if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' }}
       shell: bash
       run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git commit -am 'Updated by GitHub Workflow Git Status Action'
 
     - id: git-push
