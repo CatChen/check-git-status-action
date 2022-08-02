@@ -57,7 +57,7 @@ runs:
       name: git commit
       if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' && github.event_name == 'pull_request' }}
       shell: bash
-      run: |
+      run: |g
         git commit -am 'Updated by GitHub Workflow Check Git Status Action'
 
     - id: git-push
@@ -72,8 +72,9 @@ runs:
         git checkout -b "$BRANCH_NAME"
         if [[ $GITHUB_TOKEN != $OVERRIDE_TOKEN ]]
         then
-          echo "git push -f --set-upstream `git remote get-url origin --push | sed 's/^https:\/\//http:\/\/$OVERRIDE_TOKEN@/'` $BRANCH_NAME"
-          git push -f --set-upstream `git remote get-url origin --push | sed 's/^https:\/\//http:\/\/$OVERRIDE_TOKEN@/'` "$BRANCH_NAME"
+          OVERRIDE_REMOTE=$(git remote get-url origin --push | sed 's/^https:\/\//https:\/\/$OVERRIDE_TOKEN@/')
+          echo "git push -f --set-upstream $OVERRIDE_REMOTE $BRANCH_NAME"
+          git push -f --set-upstream "$OVERRIDE_REMOTE" "$BRANCH_NAME"
         else
           echo "git push -f --set-upstream origin $BRANCH_NAME"
           git push -f --set-upstream origin "$BRANCH_NAME"
