@@ -9,6 +9,10 @@ inputs:
     description: "Push changes if git status is not clean."
     required: true
     default: false
+  github-token:
+    description:
+    required: true
+    default: ${{ secrets.GITHUB_TOKEN }}
 outputs:
   status:
     description: "Is git status clean or dirty?"
@@ -54,9 +58,7 @@ runs:
       if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' && github.event_name == 'pull_request' }}
       shell: bash
       run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git commit -am 'Updated by GitHub Workflow Git Status Action'
+        git commit -am 'Updated by GitHub Workflow Check Git Status Action'
 
     - id: git-push
       name: git push
@@ -64,14 +66,17 @@ runs:
       shell: bash
       env:
         BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        OVERRIDE_TOKEN: ${{ inputs.github-token }}
       run: |
         git checkout -b "$BRANCH_NAME"
-        echo "git show-ref"
-        git show-ref
-        echo "git ls-remote"
-        git ls-remote
-        echo "git push -f --set-upstream origin $BRANCH_NAME"
-        git push -f --set-upstream origin "$BRANCH_NAME"
+        if [[ $GITHUB_TOKEN = $OVERRIDE_TOKEN]]
+        then
+          echo "git push -f --set-upstream origin $BRANCH_NAME
+          git push -f --set-upstream origin "$BRANCH_NAME"
+        else
+          echo "git push -f --set-upstream `git remote get-url origin --push | sed s/^git@/$OVERRIDE_TOKEN/` $BRANCH_NAME
+          git push -f --set-upstream `git remote get-url origin --push | sed s/^git@/$OVERRIDE_TOKEN/` "$BRANCH_NAME"
 branding:
   icon: "edit-3"
   color: "red"
