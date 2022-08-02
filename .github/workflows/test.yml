@@ -126,7 +126,6 @@ jobs:
           BASE_BRANCH_NAME: ${{ github.head_ref }}
           TEST_PR_NUMBER: ${{ steps.open-pr.outputs.test-pr-number }}
         run: |
-          exit 0
           if [ $BASE_BRANCH_NAME != '' ]
           then
             git checkout "$BASE_BRANCH_NAME"
@@ -146,5 +145,4 @@ jobs:
           RUN_ATTEMPT: ${{ github.run_attempt }}
           TEST_BRANCH_NAME: ${{ format('workflows/tests/{0}-{1}-on-{2}', github.run_number, github.run_attempt, github.sha) }}
         run: |
-          exit 0
           git push -d origin "$TEST_BRANCH_NAME"
