@@ -70,13 +70,14 @@ runs:
         OVERRIDE_TOKEN: ${{ inputs.github-token }}
       run: |
         git checkout -b "$BRANCH_NAME"
-        if [[ $GITHUB_TOKEN = $OVERRIDE_TOKEN]]
+        if [[ $GITHUB_TOKEN != $OVERRIDE_TOKEN]]
         then
-          echo "git push -f --set-upstream origin $BRANCH_NAME
-          git push -f --set-upstream origin "$BRANCH_NAME"
-        else
           echo "git push -f --set-upstream `git remote get-url origin --push | sed s/^git@/$OVERRIDE_TOKEN/` $BRANCH_NAME
           git push -f --set-upstream `git remote get-url origin --push | sed s/^git@/$OVERRIDE_TOKEN/` "$BRANCH_NAME"
+        else
+          echo "git push -f --set-upstream origin $BRANCH_NAME
+          git push -f --set-upstream origin "$BRANCH_NAME"
+        fi
 branding:
   icon: "edit-3"
   color: "red"
