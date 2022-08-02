@@ -37,13 +37,13 @@ runs:
 
     - id: exit-1
       name: exit 1
-      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.fail-if-not-clean == 'true' }}
+      if: ${{ steps.git-status.outputs.status == 'dirty' && (inputs.fail-if-not-clean == 'true' || (inputs.push-if-not-clean == 'true' && github.event_name != 'pull_request')) }}
       shell: bash
       run: exit 1
 
     - id: git-config
       name: git config
-      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' }}
+      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' && github.event_name == 'pull_request' }}
       shell: bash
       run: |
         git config --global user.name "github-actions[bot]"
@@ -51,17 +51,27 @@ runs:
 
     - id: git-commit
       name: git commit
-      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' }}
+      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' && github.event_name == 'pull_request' }}
       shell: bash
       run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git commit -am 'Updated by GitHub Workflow Git Status Action'
 
     - id: git-push
       name: git push
-      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' }}
+      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' && github.event_name == 'pull_request' }}
       shell: bash
+      env:
+        BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
       run: |
-        git push
+        git checkout -b "$BRANCH_NAME"
+        echo "git show-ref"
+        git show-ref
+        echo "git ls-remote"
+        git ls-remote
+        echo "git push -f --set-upstream origin $BRANCH_NAME"
+        git push -f --set-upstream origin "$BRANCH_NAME"
 branding:
   icon: "edit-3"
   color: "red"
