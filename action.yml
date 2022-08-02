@@ -63,18 +63,15 @@ runs:
       if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' && github.event_name == 'pull_request' }}
       shell: bash
       env:
-        BRANCH_NAME: ${{ github.ref_name }}
+        BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
       run: |
         git checkout -b "$BRANCH_NAME"
-        echo "\ngit remote\n"
-        git remote
-        echo "\ngit remote\n"
-        git branch -a
-        echo "\ngit show-ref\n"
+        echo "git show-ref"
         git show-ref
-        echo "\ngit ls-remote\n"
+        echo "git ls-remote"
         git ls-remote
-        echo "\n"
+        echo "git sparse-checkout list"
+        git sparse-checkout list
         git push -f --set-upstream origin "$BRANCH_NAME"
 branding:
   icon: "edit-3"
