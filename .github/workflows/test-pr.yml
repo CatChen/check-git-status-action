@@ -2,12 +2,11 @@ name: Test
 
 on:
   pull_request:
-    branches: ["workflows/tests/[0-9]+-[0-9]+-on-[a-fA-F0-9]+"]
   workflow_dispatch:
 
 jobs:
   test_dirty_push_in_pull_request:
-    if: startsWith(github.head_ref, 'workflows/tests/')
+    if: ${{ startsWith(github.head_ref, 'workflows/tests/') }}
     name: Test Dirty Failure in Pull Request
     outputs:
       touched-filename: ${{ steps.make-dirty.outputs.touched-filename }}
@@ -39,7 +38,7 @@ jobs:
 
   verify_dirty_push_in_pull_request:
     name: Verify Dirty Failure in Pull Request
-    if: startsWith(github.head_ref, 'workflows/tests/')
+    if: ${{ startsWith(github.head_ref, 'workflows/tests/') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

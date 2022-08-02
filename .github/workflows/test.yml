@@ -10,6 +10,7 @@ on:
 jobs:
   test_clean:
     name: Test Clean
+    if: ${{ !startsWith(github.head_ref, 'workflows/tests/') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -28,6 +29,7 @@ jobs:
 
   test_dirty_failure:
     name: Test Dirty Failure
+    if: ${{ !startsWith(github.head_ref, 'workflows/tests/') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -51,6 +53,7 @@ jobs:
 
   test_dirty_push:
     name: Test Dirty Push
+    if: ${{ !startsWith(github.head_ref, 'workflows/tests/') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
