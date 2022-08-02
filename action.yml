@@ -37,7 +37,7 @@ runs:
 
     - id: exit-1
       name: exit 1
-      if: ${{ steps.git-status.outputs.status == 'dirty' && (inputs.fail-if-not-clean == 'true' || (inputs.push-if-not-clean == 'true' && github.event_name == 'pull_request')) }}
+      if: ${{ steps.git-status.outputs.status == 'dirty' && (inputs.fail-if-not-clean == 'true' || (inputs.push-if-not-clean == 'true' && github.event_name != 'pull_request')) }}
       shell: bash
       run: exit 1
 
