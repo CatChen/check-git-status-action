@@ -9,6 +9,10 @@ inputs:
     description: "Push changes if git status is not clean."
     required: true
     default: false
+  github-token:
+    description:
+    required: true
+    default: ${{ github.token }}
 outputs:
   status:
     description: "Is git status clean or dirty?"
@@ -37,13 +41,13 @@ runs:
 
     - id: exit-1
       name: exit 1
-      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.fail-if-not-clean == 'true' }}
+      if: ${{ steps.git-status.outputs.status == 'dirty' && (inputs.fail-if-not-clean == 'true' || (inputs.push-if-not-clean == 'true' && github.event_name != 'pull_request')) }}
       shell: bash
       run: exit 1
 
     - id: git-config
       name: git config
-      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' }}
+      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' && github.event_name == 'pull_request' }}
       shell: bash
       run: |
         git config --global user.name "github-actions[bot]"
@@ -51,17 +55,30 @@ runs:
 
     - id: git-commit
       name: git commit
-      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' }}
+      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' && github.event_name == 'pull_request' }}
       shell: bash
       run: |
-        git commit -am 'Updated by GitHub Workflow Git Status Action'
+        git commit -am 'Updated by GitHub Workflow Check Git Status Action'
 
     - id: git-push
       name: git push
-      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' }}
+      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' && github.event_name == 'pull_request' }}
       shell: bash
+      env:
+        BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
+        GITHUB_TOKEN: ${{ github.token }}
+        OVERRIDE_TOKEN: ${{ inputs.github-token }}
       run: |
-        git push
+        git checkout -b "$BRANCH_NAME"
+        if [[ $GITHUB_TOKEN != $OVERRIDE_TOKEN ]]
+        then
+          OVERRIDE_REMOTE=$(git remote get-url origin --push | sed 's/^https:\/\//https:\/\/$OVERRIDE_TOKEN@/')
+          echo "git push -f --set-upstream $OVERRIDE_REMOTE $BRANCH_NAME"
+          git push -f --set-upstream "$OVERRIDE_REMOTE" "$BRANCH_NAME"
+        else
+          echo "git push -f --set-upstream origin $BRANCH_NAME"
+          git push -f --set-upstream origin "$BRANCH_NAME"
+        fi
 branding:
   icon: "edit-3"
   color: "red"
