@@ -69,6 +69,7 @@ runs:
         GITHUB_TOKEN: ${{ github.token }}
         OVERRIDE_TOKEN: ${{ inputs.github-token }}
       run: |
+        git fetch --unshallow origin
         git checkout -b "$BRANCH_NAME"
         if [[ $GITHUB_TOKEN != $OVERRIDE_TOKEN ]]
         then
