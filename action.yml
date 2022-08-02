@@ -72,7 +72,7 @@ runs:
         git checkout -b "$BRANCH_NAME"
         if [[ $GITHUB_TOKEN != $OVERRIDE_TOKEN ]]
         then
-          OVERRIDE_REMOTE=$(git remote get-url origin --push | sed 's/^https:\/\//https:\/\/$OVERRIDE_TOKEN@/')
+          OVERRIDE_REMOTE=$(git remote get-url origin --push | sed 's/^https:\/\//https:\/\/'"$OVERRIDE_TOKEN"'@/')
           echo "git push -f --set-upstream $OVERRIDE_REMOTE $BRANCH_NAME"
           git push -f --set-upstream "$OVERRIDE_REMOTE" "$BRANCH_NAME"
         else
