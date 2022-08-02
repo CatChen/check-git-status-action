@@ -39,7 +39,7 @@ jobs:
   verify_dirty_push_in_pull_request:
     name: Verify Dirty Failure in Pull Request
     if: ${{ startsWith(github.head_ref, 'workflows/tests/') }}
-    needs: verify_dirty_push_in_pull_request
+    needs: test_dirty_push_in_pull_request
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
