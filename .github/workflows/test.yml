@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: CatChen/check-git-status-action@v0.1.10
+      - uses: CatChen/check-git-status-action@v0.1.11
         id: test-action
 
       - name: Verify outputs
@@ -39,7 +39,7 @@ jobs:
         run: |
           touch `git rev-parse --verify HEAD`
 
-      - uses: CatChen/check-git-status-action@v0.1.10
+      - uses: CatChen/check-git-status-action@v0.1.11
         id: test-action
         continue-on-error: true
 
@@ -162,7 +162,7 @@ jobs:
           echo "::set-output name=touched-filename::`git rev-parse --verify HEAD`"
           touch `git rev-parse --verify HEAD`
 
-      - uses: CatChen/check-git-status-action@v0.1.10
+      - uses: CatChen/check-git-status-action@v0.1.11
         id: test-action
         with:
           fail-if-not-clean: false
