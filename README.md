@@ -1,5 +1,7 @@
 # check-git-status-action
 
+![test status badge](https://github.com/CatChen/check-git-status-action/actions/workflows/test.yml/badge.svg?event=push)
+
 Do you check in dependency packages or build artefacts? If yes this GitHub Action helps you ensure they are not out-of-sync. Examples:
 
 1. Say we set up to [run Yarn offline](https://classic.yarnpkg.com/blog/2016/11/24/offline-mirror/) and we check in Yarn offline mirror. We want to make sure the offline mirror is in sync with the dependencies declared in the `package.json`. We can set up a GitHub Workflow to run `yarn install` and then use this Action to check if the offline mirror is changed.
