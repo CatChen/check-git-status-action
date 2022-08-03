@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: CatChen/check-git-status-action@v0.1.35
+      - uses: CatChen/check-git-status-action@v0.1.36
         id: test-action
 
       - name: Verify outputs
@@ -38,7 +38,7 @@ jobs:
         run: |
           touch `git rev-parse --verify HEAD`
 
-      - uses: CatChen/check-git-status-action@v0.1.35
+      - uses: CatChen/check-git-status-action@v0.1.36
         id: test-action
         continue-on-error: true
 

@@ -53,9 +53,20 @@ runs:
       name: git config
       if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' && github.event_name == 'pull_request' }}
       shell: bash
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        GH_TOKEN: ${{ inputs.github-token }}
       run: |
-        git config --global user.name `git log -n 1 --pretty=format:%an`
-        git config --global user.email `git log -n 1 --pretty=format:%ae`
+        if [[ $GITHUB_TOKEN != $GH_TOKEN ]]
+        then
+          git config --global user.name `git log -n 1 --pretty=format:%an`
+          git config --global user.email `git log -n 1 --pretty=format:%ae`
+        else
+          USERNAME=$(gh api -H "Accept: application/vnd.github+json" /user -q '.name')
+          USEREMAIL=$(gh api -H "Accept: application/vnd.github+json" /user -q '.email')
+          git config --global user.name "$USERNAME"
+          git config --global user.email "$USEREMAIL"
+        fi
 
     - id: git-commit
       name: git commit
