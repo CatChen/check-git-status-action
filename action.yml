@@ -1,16 +1,16 @@
 name: "Check Git Status"
-description: "Fail the workflow or git push based on git status"
+description: "Fail the workflow or git push based if git status is not clean."
 inputs:
   fail-if-not-clean:
     description: "Fail the workflow if git status is not clean."
     required: true
     default: true
   push-if-not-clean:
-    description: "Push changes if git status is not clean."
+    description: "Commit the changes and push them to the origin if git status is not clean."
     required: true
     default: false
   github-token:
-    description:
+    description: "GitHub token to use when pushing new changes."
     required: true
     default: ${{ github.token }}
 outputs:
