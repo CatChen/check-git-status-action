@@ -20,7 +20,7 @@ jobs:
           echo "::set-output name=touched-filename::`git rev-parse --verify HEAD`"
           touch `git rev-parse --verify HEAD`
 
-      - uses: CatChen/check-git-status-action@v0.1.36
+      - uses: CatChen/check-git-status-action@v1
         id: test-action
         with:
           fail-if-not-clean: false
