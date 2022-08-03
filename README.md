@@ -28,7 +28,7 @@ jobs:
           # replace the following line with the real build script
           touch some-build-artefact-newly-generated-in-the-build-process
 
-      - uses: CatChen/check-git-status-action@v0.1.33
+      - uses: CatChen/check-git-status-action@v0.1.34
         with:
           fail-if-not-clean: true # optional
           push-if-not-clean: false # optional
