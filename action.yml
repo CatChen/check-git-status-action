@@ -3,16 +3,20 @@ description: "Fail the workflow or git push based if git status is not clean."
 inputs:
   fail-if-not-clean:
     description: "Fail the workflow if git status is not clean."
-    required: true
+    required: false
     default: true
   push-if-not-clean:
     description: "Commit the changes and push them to the origin if git status is not clean."
-    required: true
+    required: false
     default: false
   github-token:
     description: "GitHub token to use when pushing new changes."
-    required: true
+    required: false
     default: ${{ github.token }}
+  commit-message:
+    description: "The commit message to use when `push-if-not-clean` is `true` and there are changes."
+    required: false
+    default: "Changes detected by Check Git Status Action"
 outputs:
   status:
     description: "Is git status clean or dirty?"
@@ -57,8 +61,10 @@ runs:
       name: git commit
       if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' && github.event_name == 'pull_request' }}
       shell: bash
+      env:
+        COMMIT_MESSAGE: ${{ inputs.commit-message }}
       run: |
-        git commit -am 'Updated by GitHub Workflow Check Git Status Action'
+        git commit -am "$COMMIT_MESSAGE"
 
     - id: git-push
       name: git push
