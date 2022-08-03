@@ -28,11 +28,12 @@ jobs:
           # replace the following line with the real build script
           touch some-build-artefact-newly-generated-in-the-build-process
 
-      - uses: CatChen/check-git-status-action@v0.1.34
+      - uses: CatChen/check-git-status-action@v0.1.35
         with:
           fail-if-not-clean: true # optional
           push-if-not-clean: false # optional
           github-token: ${{ secrets.GITHUB_TOKEN }} # optional
+          commit-message: "Changes detected by Check Git Status Action" # optional
 ```
 
 Save the file to `.github/workflows/build.yml`. It will start working on new Pull Requests.
@@ -50,6 +51,10 @@ When this option is set to `true` this action will commit the new changes in the
 ### `github-token`
 
 The default value is `${{ github.token }}`, which is the GitHub token generated for this workflow. You can [create a different token with a different set of permissions](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) and use it here as well.
+
+### `commit-message`
+
+When `push-if-not-clean` is set to `true` and `git status` is not clean this option will be used as the commit message when committing the changes. Its default value is `"Changes detected by Check Git Status Action"`.
 
 ## FAQ
 
