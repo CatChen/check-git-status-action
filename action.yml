@@ -73,8 +73,10 @@ runs:
         if [[ $GITHUB_TOKEN != $GH_TOKEN ]]
         then
           gh auth status
+          gh api -H "Accept: application/vnd.github+json" /user
           gh auth setup-git
-          OVERRIDE_REMOTE=$(git remote get-url origin --push | sed 's/^https:\/\//https:\/\/'"$GH_TOKEN"'@/')
+          OVERRIDE_LOGIN=$(gh api -H "Accept: application/vnd.github+json" /user -q '.login')
+          OVERRIDE_REMOTE=$(git remote get-url origin --push | sed 's/^https:\/\//https:\/\/'"$OVERRIDE_LOGIN:$GH_TOKEN"'@/')
           echo "git push -f --set-upstream $OVERRIDE_REMOTE HEAD:refs/heads/$BRANCH_NAME"
           git push -f --set-upstream "$OVERRIDE_REMOTE" "HEAD:refs/heads/$BRANCH_NAME"
         else
