@@ -43,12 +43,6 @@ runs:
           echo "::set-output name=status::clean"
         fi
 
-    - id: exit-1
-      name: exit 1
-      if: ${{ steps.git-status.outputs.status == 'dirty' && (inputs.fail-if-not-clean == 'true' || (inputs.push-if-not-clean == 'true' && github.event_name != 'pull_request')) }}
-      shell: bash
-      run: exit 1
-
     - id: git-config
       name: git config
       if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' && github.event_name == 'pull_request' }}
@@ -100,6 +94,12 @@ runs:
           echo "git push -f --set-upstream origin HEAD:refs/heads/$BRANCH_NAME"
           git push -f --set-upstream origin "HEAD:refs/heads/$BRANCH_NAME"
         fi
+
+    - id: exit-1
+      name: exit 1
+      if: ${{ steps.git-status.outputs.status == 'dirty' && (inputs.fail-if-not-clean == 'true') }}
+      shell: bash
+      run: exit 1
 branding:
   icon: "edit-3"
   color: "red"
