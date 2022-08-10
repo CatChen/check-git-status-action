@@ -8,7 +8,7 @@ on:
 jobs:
   test_dirty_push_in_pull_request:
     if: ${{ startsWith(github.head_ref, 'workflows/tests/') }}
-    name: Test Dirty Failure in Pull Request
+    name: Test Dirty Push in Pull Request
     outputs:
       touched-filename: ${{ steps.make-dirty.outputs.touched-filename }}
     runs-on: ubuntu-latest
@@ -38,7 +38,7 @@ jobs:
           fi
 
   verify_dirty_push_in_pull_request:
-    name: Verify Dirty Failure in Pull Request
+    name: Verify Dirty Push in Pull Request
     if: ${{ startsWith(github.head_ref, 'workflows/tests/') }}
     needs: test_dirty_push_in_pull_request
     runs-on: ubuntu-latest
