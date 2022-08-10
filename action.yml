@@ -28,6 +28,7 @@ runs:
       name: git status
       shell: bash
       run: |
+        echo '::group::git status'
         if git rev-parse --verify HEAD >/dev/null 2>&1
         then
           against=HEAD
@@ -42,6 +43,7 @@ runs:
         else
           echo "::set-output name=status::clean"
         fi
+        echo '::endgroup'
 
     - id: git-config
       name: git config
@@ -51,16 +53,20 @@ runs:
         GITHUB_TOKEN: ${{ github.token }}
         GH_TOKEN: ${{ inputs.github-token }}
       run: |
+        echo '::group::git config'
         if [[ $GITHUB_TOKEN != $GH_TOKEN ]]
         then
-          git config --global user.name `git log -n 1 --pretty=format:%an`
-          git config --global user.email `git log -n 1 --pretty=format:%ae`
+          USERNAME=$(git log -n 1 --pretty=format:%an)
+          USEREMAIL=$(git log -n 1 --pretty=format:%ae)
         else
           USERNAME=$(gh api -H "Accept: application/vnd.github+json" /user -q '.name')
           USEREMAIL=$(gh api -H "Accept: application/vnd.github+json" /user -q '.email')
-          git config --global user.name "$USERNAME"
-          git config --global user.email "$USEREMAIL"
         fi
+        echo "::notice::Set git user name: $USERNAME"
+        echo "::notice::Set git user email: $USEREMAIL"
+        git config --global user.name "$USERNAME"
+        git config --global user.email "$USEREMAIL"
+        echo '::groupend::'
 
     - id: git-commit
       name: git commit
@@ -69,7 +75,9 @@ runs:
       env:
         COMMIT_MESSAGE: ${{ inputs.commit-message }}
       run: |
+        echo '::group::git commit'
         git commit -am "$COMMIT_MESSAGE"
+        echo '::groupend::'
 
     - id: git-push
       name: git push
@@ -80,6 +88,7 @@ runs:
         GITHUB_TOKEN: ${{ github.token }}
         GH_TOKEN: ${{ inputs.github-token }}
       run: |
+        echo '::group::git push'
         git fetch --unshallow origin
         if [[ $GITHUB_TOKEN != $GH_TOKEN ]]
         then
@@ -94,6 +103,7 @@ runs:
           echo "git push -f --set-upstream origin HEAD:refs/heads/$BRANCH_NAME"
           git push -f --set-upstream origin "HEAD:refs/heads/$BRANCH_NAME"
         fi
+        echo '::endgroup::'
 
     - id: exit-1
       name: exit 1
