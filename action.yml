@@ -40,8 +40,11 @@ runs:
         if test $(git diff --name-only $against | wc -l) != 0
         then
           echo "::set-output name=status::dirty"
+          echo "::notice::Git status is dirty"
+          git diff --name-only $against | xargs -n1 -I {} echo "::notice file={}::  File: {}"
         else
           echo "::set-output name=status::clean"
+          echo "::notice::Git status is clean"
         fi
         echo '::endgroup'
 
@@ -59,8 +62,8 @@ runs:
           USERNAME=$(git log -n 1 --pretty=format:%an)
           USEREMAIL=$(git log -n 1 --pretty=format:%ae)
         else
-          USERNAME=$(gh api -H "Accept: application/vnd.github+json" /user -q '.name')
-          USEREMAIL=$(gh api -H "Accept: application/vnd.github+json" /user -q '.email')
+          USERNAME="GitHub Action"
+          USEREMAIL="action@github.com"
         fi
         echo "::notice::Set git user name: $USERNAME"
         echo "::notice::Set git user email: $USEREMAIL"
@@ -97,10 +100,10 @@ runs:
           gh auth setup-git
           OVERRIDE_LOGIN=$(gh api -H "Accept: application/vnd.github+json" /user -q '.login')
           OVERRIDE_REMOTE=$(git remote get-url origin --push | sed 's/^https:\/\//https:\/\/'"$OVERRIDE_LOGIN:$GH_TOKEN"'@/')
-          echo "git push -f --set-upstream $OVERRIDE_REMOTE HEAD:refs/heads/$BRANCH_NAME"
+          echo "::notice::git push -f --set-upstream $OVERRIDE_REMOTE HEAD:refs/heads/$BRANCH_NAME"
           git push -f --set-upstream "$OVERRIDE_REMOTE" "HEAD:refs/heads/$BRANCH_NAME"
         else
-          echo "git push -f --set-upstream origin HEAD:refs/heads/$BRANCH_NAME"
+          echo "::notice::git push -f --set-upstream origin HEAD:refs/heads/$BRANCH_NAME"
           git push -f --set-upstream origin "HEAD:refs/heads/$BRANCH_NAME"
         fi
         echo '::endgroup::'
