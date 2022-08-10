@@ -41,7 +41,7 @@ runs:
         then
           echo "::set-output name=status::dirty"
           echo "::notice::Git status is dirty"
-          git diff --name-only $against | xargs -n1 -I {} echo "::notice::  File: {}"
+          git diff --name-only $against | xargs -n1 -I {} echo "::notice file={}::  File: {}"
         else
           echo "::set-output name=status::clean"
           echo "::notice::Git status is clean"
