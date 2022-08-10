@@ -63,7 +63,7 @@ runs:
           USEREMAIL=$(git log -n 1 --pretty=format:%ae)
         else
           USERNAME="GitHub Action"
-          USEREMAIL="action@github.com"
+          USEREMAIL="41898282+github-actions[bot]@users.noreply.github.com"
         fi
         echo "::notice::Set git user name: $USERNAME"
         echo "::notice::Set git user email: $USEREMAIL"
