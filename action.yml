@@ -59,8 +59,8 @@ runs:
           USERNAME=$(git log -n 1 --pretty=format:%an)
           USEREMAIL=$(git log -n 1 --pretty=format:%ae)
         else
-          USERNAME=$(gh api -H "Accept: application/vnd.github+json" /user -q '.name')
-          USEREMAIL=$(gh api -H "Accept: application/vnd.github+json" /user -q '.email')
+          USERNAME="GitHub Action"
+          USEREMAIL="action@github.com"
         fi
         echo "::notice::Set git user name: $USERNAME"
         echo "::notice::Set git user email: $USEREMAIL"
