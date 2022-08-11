@@ -79,6 +79,7 @@ runs:
         GH_TOKEN: ${{ inputs.github-token }}
       run: |
         echo '::group::gh auth'
+        echo "$GH_TOKEN" | gh auth login --with-token
         gh auth status
         gh api -H "Accept: application/vnd.github+json" /user
         gh auth setup-git
@@ -119,9 +120,6 @@ runs:
         echo '::group::git push'
         if [[ "$OVERRIDE_REMOTE" != "" ]]
         then
-          gh auth status
-          gh api -H "Accept: application/vnd.github+json" /user
-          gh auth setup-git
           echo "::notice::git push -f --set-upstream $OVERRIDE_REMOTE HEAD:refs/heads/$BRANCH_NAME"
           git push -f --set-upstream "$OVERRIDE_REMOTE" "HEAD:refs/heads/$BRANCH_NAME"
         else
