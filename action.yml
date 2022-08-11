@@ -79,7 +79,6 @@ runs:
         GH_TOKEN: ${{ inputs.github-token }}
       run: |
         echo '::group::gh auth'
-        echo "$GH_TOKEN" | gh auth login --with-token
         gh auth status
         gh api -H "Accept: application/vnd.github+json" /user
         gh auth setup-git
