@@ -133,7 +133,10 @@ jobs:
         run: |
           gh pr comment "$BASE_PR_NUMBER" --body "**Checks from #$TEST_PR_NUMBER**
 
-          $(cat $CHECKS_TEMP_FILE)"
+          | Check | Status | URL |
+          | --- | --- | --- |
+          $(cat $CHECKS_TEMP_FILE | grep 'https://github.com/[^/]*/[^/]*/runs/ | sed -E 's/(.*)\t(.*)\t(.*)\t(.*)/| \1 | \2 | \4 |/')"
+          rm -f $CHECKS_TEMP_FILE
 
       - name: Close PR
         if: ${{ always() }}
