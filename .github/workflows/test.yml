@@ -108,13 +108,29 @@ jobs:
           echo "::debug::Test PR number is $TEST_PR_NUMBER"
 
       - name: Check PR
+        id: check-pr
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          TEMP="$(mktemp)"
+          trap "rm -f $TEMP" EXIT
           sleep 10
-          gh pr checks --watch
+          gh pr checks --watch >> $TEMP
           sleep 10
-          gh pr checks --watch
+          gh pr checks --watch >> $TEMP
+          echo "::set-output name=checks::$(cat $TEMP)"
+
+      - name: Report Checks
+        if: ${{ steps.check-pr.outputs.checks != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_PR_NUMBER: ${{ github.event.pull_request.number }}
+          TEST_PR_NUMBER: ${{ steps.open-pr.outputs.test-pr-number }}
+          CHECKS: ${{ steps.check-pr.outputs.checks }}
+        run: |
+          gh pr comment "$BASE_PR_NUMBER" --body "**Checks from #$TEST_PR_NUMBER**
+
+          $CHECKS"
 
       - name: Close PR
         if: ${{ always() }}
