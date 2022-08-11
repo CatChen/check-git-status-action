@@ -117,6 +117,8 @@ jobs:
           gh pr checks --watch >> $CHECKS_TEMP_FILE
           sleep 10
           gh pr checks --watch >> $CHECKS_TEMP_FILE
+          sleep 10
+          gh pr checks --watch >> $CHECKS_TEMP_FILE
           echo "::notice::Temp file content:
 
           $(cat $CHECKS_TEMP_FILE)
