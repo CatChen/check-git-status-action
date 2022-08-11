@@ -57,7 +57,7 @@ runs:
         GH_TOKEN: ${{ inputs.github-token }}
       run: |
         echo '::group::git config'
-        if [[ $GITHUB_TOKEN != $GH_TOKEN ]]
+        if [[ "$GITHUB_TOKEN" != "$GH_TOKEN" ]]
         then
           USERNAME=$(git log -n 1 --pretty=format:%an)
           USEREMAIL=$(git log -n 1 --pretty=format:%ae)
@@ -71,6 +71,23 @@ runs:
         git config --global user.email "$USEREMAIL"
         echo '::groupend::'
 
+    - id: gh-auth
+      name: gh auth
+      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' && github.event_name == 'pull_request' && github.token != inputs.github-token }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        echo '::group::gh auth'
+        gh auth status
+        gh api -H "Accept: application/vnd.github+json" /user
+        gh auth setup-git
+        OVERRIDE_LOGIN=$(gh api -H "Accept: application/vnd.github+json" /user -q '.login')
+        OVERRIDE_REMOTE=$(git remote get-url origin --push | sed 's/^https:\/\//https:\/\/'"$OVERRIDE_LOGIN:$GH_TOKEN"'@/')
+        echo "::set-output name=login::$OVERRIDE_LOGIN"
+        echo "::set-output name=remote::$OVERRIDE_REMOTE"
+        echo '::endgroup::'
+
     - id: git-commit
       name: git commit
       if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' && github.event_name == 'pull_request' }}
@@ -82,24 +99,29 @@ runs:
         git commit -am "$COMMIT_MESSAGE"
         echo '::groupend::'
 
+    - id: git-fetch
+      name: git fetch
+      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' && github.event_name == 'pull_request' }}
+      shell: bash
+      run: |
+        echo '::group::git fetch'
+        git fetch --unshallow origin
+        echo '::endgroup::'
+
     - id: git-push
       name: git push
       if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' && github.event_name == 'pull_request' }}
       shell: bash
       env:
         BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
-        GITHUB_TOKEN: ${{ github.token }}
-        GH_TOKEN: ${{ inputs.github-token }}
+        OVERRIDE_REMOTE: ${{ steps.gh-auth.outputs.remote }}
       run: |
         echo '::group::git push'
-        git fetch --unshallow origin
-        if [[ $GITHUB_TOKEN != $GH_TOKEN ]]
+        if [[ "$OVERRIDE_REMOTE" != "" ]]
         then
           gh auth status
           gh api -H "Accept: application/vnd.github+json" /user
           gh auth setup-git
-          OVERRIDE_LOGIN=$(gh api -H "Accept: application/vnd.github+json" /user -q '.login')
-          OVERRIDE_REMOTE=$(git remote get-url origin --push | sed 's/^https:\/\//https:\/\/'"$OVERRIDE_LOGIN:$GH_TOKEN"'@/')
           echo "::notice::git push -f --set-upstream $OVERRIDE_REMOTE HEAD:refs/heads/$BRANCH_NAME"
           git push -f --set-upstream "$OVERRIDE_REMOTE" "HEAD:refs/heads/$BRANCH_NAME"
         else
