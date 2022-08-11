@@ -113,7 +113,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           CHECKS_TEMP_FILE="$(mktemp)"
-          trap "rm -f $CHECKS_TEMP_FILE" EXIT
           sleep 10
           gh pr checks --watch >> $CHECKS_TEMP_FILE
           sleep 10
