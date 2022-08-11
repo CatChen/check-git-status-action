@@ -38,8 +38,8 @@ jobs:
           fi
 
   verify_dirty_push_in_pull_request:
-    name: Verify Dirty Push in Pull Request
     if: ${{ startsWith(github.head_ref, 'workflows/tests/') }}
+    name: Verify Dirty Push in Pull Request
     needs: test_dirty_push_in_pull_request
     runs-on: ubuntu-latest
     steps:
@@ -60,3 +60,28 @@ jobs:
           then
             exit 1
           fi
+
+  revert_push_in_pull_request:
+    if: ${{ startsWith(github.head_ref, 'workflows/tests/') }}
+    name: Revert Dirty Push in Pull Request
+    needs: verify_dirty_push_in_pull_request
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Git fetch
+        env:
+          TEST_BRANCH_NAME: ${{ github.head_ref }}
+        run: |
+          git fetch --unshallow origin
+          git checkout $TEST_BRANCH_NAME
+
+      - name: Git reset
+        env:
+        run: |
+          git reset HEAD^ --hard
+
+      - name: Git push
+        env:
+        run: |
+          git push
