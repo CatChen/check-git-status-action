@@ -127,7 +127,9 @@ jobs:
           TEST_PR_NUMBER: ${{ steps.open-pr.outputs.test-pr-number }}
           CHECKS: ${{ steps.check-pr.outputs.checks }}
         run: |
-          gh pr comment "$BASE_PR_NUMBER" --body "**Checks from #$TEST_PR_NUMBER**$('\n\n')$CHECKS"
+          gh pr comment "$BASE_PR_NUMBER" --body "**Checks from #$TEST_PR_NUMBER**
+
+          $CHECKS"
 
       - name: Close PR
         if: ${{ always() }}
