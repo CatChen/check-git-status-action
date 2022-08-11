@@ -131,9 +131,14 @@ jobs:
           TEST_PR_NUMBER: ${{ steps.open-pr.outputs.test-pr-number }}
           CHECKS_TEMP_FILE: ${{ steps.check-pr.outputs.checks-temp-file }}
         run: |
+          FORMATTED_CHECKS_TEMP_FILE="$(mktemp)"
+          cat $CHECKS_TEMP_FILE | grep -E 'https://github.com/[^/]*/[^/]*/runs/ | sed -E 's/(.*)\t(.*)\t(.*)\t(.*)/| \1 | \2 | \4 |/' > $FORMATTED_CHECKS_TEMP_FILE
           gh pr comment "$BASE_PR_NUMBER" --body "**Checks from #$TEST_PR_NUMBER**
 
-          $(cat $CHECKS_TEMP_FILE)"
+          | Check | Status | URL |
+          | --- | --- | --- |
+          $(cat $FORMATTED_CHECKS_TEMP_FILE)"
+          rm -f $CHECKS_TEMP_FILE $FORMATTED_CHECKS_TEMP_FILE
 
       - name: Close PR
         if: ${{ always() }}
