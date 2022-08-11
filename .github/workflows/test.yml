@@ -116,6 +116,13 @@ jobs:
           sleep 10
           gh pr checks --watch
 
+      - name: Report Checks
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr comment "$BASE_PR_NUMBER" --body "$(gh pr checks 2>&1)"
+
       - name: Close PR
         if: ${{ always() }}
         continue-on-error: true
