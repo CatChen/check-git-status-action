@@ -114,10 +114,7 @@ jobs:
         run: |
           TEMP="$(mktemp)"
           trap "rm -f $TEMP" EXIT
-          sleep 10
-          gh pr checks --watch >> $TEMP 2>&1
-          sleep 10
-          gh pr checks --watch >> $TEMP 2>&1
+          { sleep 10; gh pr checks --watch; sleep 10; gh pr checks --watch } &> $TEMP
           echo "::set-output name=checks::$(cat $TEMP)"
 
       - name: Report Checks
