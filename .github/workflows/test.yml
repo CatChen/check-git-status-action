@@ -78,7 +78,6 @@ jobs:
           echo "::debug::Base commit is `git rev-parse --verify HEAD`"
           echo "::debug::Test branch is $TEST_BRANCH_NAME"
           git checkout -b "$TEST_BRANCH_NAME"
-          echo "::debug::Test branch is `git branch --show-current`"
           touch $SHA
           git add -A
           git commit -am "Test commit for #$BASE_PR_NUMBER ($SHA) by $RUN_NUMBER-$RUN_ATTEMPT"
