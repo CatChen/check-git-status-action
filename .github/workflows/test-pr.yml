@@ -26,7 +26,7 @@ jobs:
         with:
           fail-if-not-clean: false
           push-if-not-clean: true
-          github-token: ${{ secrets.REPO_TOKEN }}
+          github-token: ${{ secrets.CHECK_GIT_STATUS_ACTION_TOKEN }}
 
       - name: Verify outputs
         env:
