@@ -2,17 +2,45 @@ name: Accept to Ship
 
 on:
   pull_request:
-    types: [synchronize]
+    branches: [master]
+    types:
+      [
+        labeled,
+        unlabeled,
+        edited,
+        closed,
+        reopened,
+        synchronize,
+        review_requested,
+        review_request_removed,
+      ]
   pull_request_review:
-    types: [submitted, edited]
+    branches: [master]
+    types: [submitted, edited, dismissed]
+  check_run:
+    branches: [master]
+    type: [created, rerequested, completed]
+  check_suite:
+    branches: [master]
+    types: [completed]
+  workflow_run:
+    branches: [master]
+    workflows: ["Test"]
+    types: [completed]
+
+concurrency:
+  group: ${{ github.event.pull_request.number || github.workflow }}
+  cancel-in-progress: true
 
 jobs:
   ship:
+    name: Ship
     runs-on: ubuntu-latest
     permissions: write-all
     steps:
       - uses: actions/checkout@v3
 
-      - uses: CatChen/accept-to-ship-action@v0.2.2
+      - uses: CatChen/accept-to-ship-action@v0.3.0
         with:
           merge-method: squash
+          timeout: 0
