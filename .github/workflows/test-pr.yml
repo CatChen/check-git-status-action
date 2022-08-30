@@ -44,13 +44,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      - name: Git fetch
-        env:
-          TEST_BRANCH_NAME: ${{ github.head_ref }}
-        run: |
-          git fetch --unshallow origin
-          git checkout $TEST_BRANCH_NAME
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
 
       - name: Verify outputs
         env:
