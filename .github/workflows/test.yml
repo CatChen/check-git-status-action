@@ -69,7 +69,13 @@ jobs:
 
   test_dirty_push:
     name: Test Dirty Push
-    if: ${{ !startsWith(github.head_ref, 'workflows/tests/') && github.event_name == 'pull_request' }}
+    if: |-
+      ${{
+        !startsWith(github.head_ref, 'workflows/tests/') && (
+          (github.event_name == 'pull_request' && github.actor != 'dependabot[bot]') ||
+          (github.event_name == 'workflow_run' && github.actor == 'dependabot[bot]')
+        )
+      }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
