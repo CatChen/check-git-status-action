@@ -1,6 +1,7 @@
 # check-git-status-action
 
-![test status badge](https://github.com/CatChen/check-git-status-action/actions/workflows/test.yml/badge.svg?event=push)
+[![Test](https://github.com/CatChen/check-git-status-action/actions/workflows/test.yml/badge.svg)](https://github.com/CatChen/check-git-status-action/actions/workflows/test.yml)
+[![Ship](https://github.com/CatChen/check-git-status-action/actions/workflows/ship.yml/badge.svg)](https://github.com/CatChen/check-git-status-action/actions/workflows/ship.yml)
 
 Do you check in dependency packages or build artefacts? If yes this GitHub Action helps you ensure they are not out-of-sync. Examples:
 
