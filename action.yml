@@ -73,7 +73,7 @@ runs:
 
     - id: gh-auth
       name: gh auth
-      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' && github.event_name == 'pull_request' && github.token != inputs.github-token }}
+      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' && github.token != inputs.github-token }}
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.github-token }}
