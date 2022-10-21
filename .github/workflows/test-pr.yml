@@ -14,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
 
       - name: Make dirty
         id: make-dirty
@@ -26,6 +27,7 @@ jobs:
         with:
           fail-if-not-clean: false
           push-if-not-clean: true
+          request-changes-if-not-clean: false
           github-token: ${{ secrets.CHECK_GIT_STATUS_ACTION_TOKEN }}
 
       - name: Verify outputs
