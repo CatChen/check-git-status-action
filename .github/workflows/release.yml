@@ -59,8 +59,7 @@ jobs:
           then
             git diff --name-only $BASE_TAG | xargs -n1 -I {} echo "::notice file={}::  File: {}"
 
-            npm version patch
-            HEAD_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
+            HEAD_TAG=$(echo $BASE_TAG | awk -F. '/[0-9]+\./{$NF++;print}' OFS=.)
             echo "::notice:: Head tag is $HEAD_TAG"
             echo "::set-output name=head-tag::$HEAD_TAG"
 
