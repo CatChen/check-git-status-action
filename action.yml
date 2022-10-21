@@ -9,12 +9,20 @@ inputs:
     description: "Commit the changes and push them to the origin if git status is not clean."
     required: false
     default: false
+  request-changes-if-not-clean:
+    description: "Request change when in the context of a Pull Request if git status is not clean."
+    required: false
+    default: true
   github-token:
     description: "GitHub token to use when pushing new changes."
     required: false
     default: ${{ github.token }}
   commit-message:
     description: "The commit message to use when `push-if-not-clean` is `true` and there are changes."
+    required: false
+    default: "Changes detected by Check Git Status Action"
+  request-changes-comment:
+    description: "The comment to use when `request-changes-if-not-clean` is `true` and there are changes."
     required: false
     default: "Changes detected by Check Git Status Action"
   targets:
@@ -53,6 +61,18 @@ runs:
           echo "::notice::Git status is clean"
         fi
         echo '::endgroup'
+
+    - id: gh-pr-review
+      name: gh pr review
+      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.request-changes-if-not-clean == 'true' && github.event_name == 'pull_request' }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        REQUEST_CHANGES_COMMENT: ${{ input.request-changes-comment }}
+      run: |
+        echo '::group::gh pr review'
+        gh pr review -rb "$REQUEST_CHANGES_COMMENT"
+        echo '::endgroup::'
 
     - id: git-config
       name: git config
