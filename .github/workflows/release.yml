@@ -6,18 +6,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    uses: ./.github/workflows/build.yml
-
-  eslint:
-    uses: ./.github/workflows/eslint.yml
-
-  codeql:
-    uses: ./.github/workflows/codeql.yml
+  test:
+    uses: ./.github/workflows/test.yml
 
   release:
     name: Release
-    needs: [build, eslint, codeql]
+    needs: [test]
     runs-on: ubuntu-latest
     outputs:
       base-tag: ${{ steps.git-push.outputs.base-tag }}
