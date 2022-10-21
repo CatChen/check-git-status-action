@@ -6,15 +6,24 @@ on:
   workflow_dispatch:
 
 jobs:
+  print_head_ref:
+    name: Print Head Ref
+    runs-on: ubuntu-latest
+    steps:
+      id: print-head-ref
+      env:
+        HEAD_REF: ${{ github.head_ref }}
+      run: |
+        echo "::notice::Head Ref is: $HEAD_REF"
+
   test_dirty_push_in_pull_request:
     name: Test Dirty Push in Pull Request
-    if: ${{ startsWith(github.head_ref, 'workflows/tests/') }}
+    if: ${{ startsWith(github.head_ref, 'workflows/tests/push/') }}
     outputs:
       touched-filename: ${{ steps.make-dirty.outputs.touched-filename }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
 
       - name: Make dirty
         id: make-dirty
@@ -41,7 +50,7 @@ jobs:
 
   verify_dirty_push_in_pull_request:
     name: Verify Dirty Push in Pull Request
-    if: ${{ startsWith(github.head_ref, 'workflows/tests/') }}
+    if: ${{ startsWith(github.head_ref, 'workflows/tests/push/') }}
     needs: test_dirty_push_in_pull_request
     runs-on: ubuntu-latest
     steps:
@@ -57,4 +66,36 @@ jobs:
           if [[ ! -f "$TOUCHED_FILENAME" ]]
           then
             exit 1
+          fi
+
+  test_dirty_request_changes_in_pull_request:
+    name: Test Dirty Request Changes in Pull Request
+    if: ${{ startsWith(github.head_ref, 'workflows/tests/request-changes/') }}
+    outputs:
+      touched-filename: ${{ steps.make-dirty.outputs.touched-filename }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Make dirty
+        id: make-dirty
+        run: |
+          echo "::set-output name=touched-filename::`git rev-parse --verify HEAD`"
+          touch `git rev-parse --verify HEAD`
+
+      - uses: ./
+        id: test-action
+        with:
+          fail-if-not-clean: false
+          push-if-not-clean: false
+          request-changes-if-not-clean: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify outputs
+        env:
+          TEST_ACTION_OUTPUT: ${{ steps.test-action.outputs.status }}
+        run: |
+          if [[ $TEST_ACTION_OUTPUT != "dirty" ]]
+          then
+            exit 1;
           fi
