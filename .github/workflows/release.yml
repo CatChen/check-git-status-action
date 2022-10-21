@@ -23,11 +23,6 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version-file: ".nvmrc"
-          check-latest: true
-
       - id: git-config
         run: |
           git config --global user.name "GitHub Action"
