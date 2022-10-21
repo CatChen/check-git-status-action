@@ -17,6 +17,10 @@ inputs:
     description: "The commit message to use when `push-if-not-clean` is `true` and there are changes."
     required: false
     default: "Changes detected by Check Git Status Action"
+  targets:
+    description: "Files, directories, and/or globs to check and commit."
+    required: false
+    default: "."
 outputs:
   status:
     description: "Is git status clean or dirty?"
@@ -27,6 +31,8 @@ runs:
     - id: git-status
       name: git status
       shell: bash
+      env:
+        TARGETS: ${{ inputs.targets }}
       run: |
         echo '::group::git status'
         if git rev-parse --verify HEAD >/dev/null 2>&1
@@ -36,7 +42,7 @@ runs:
           # Initial commit: diff against an empty tree object
           against=$(git hash-object -t tree /dev/null)
         fi
-        git add -AN
+        git add -N "$TARGETS"
         if test $(git diff --name-only $against | wc -l) != 0
         then
           echo "::set-output name=status::dirty"
@@ -94,9 +100,11 @@ runs:
       shell: bash
       env:
         COMMIT_MESSAGE: ${{ inputs.commit-message }}
+        TARGETS: ${{ inputs.targets }}
       run: |
         echo '::group::git commit'
-        git commit -am "$COMMIT_MESSAGE"
+        git add "$TARGETS"
+        git commit -m "$COMMIT_MESSAGE"
         echo '::groupend::'
 
     - id: git-fetch
