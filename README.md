@@ -37,6 +37,7 @@ jobs:
           push-if-not-clean: false # optional
           github-token: ${{ secrets.GITHUB_TOKEN }} # optional
           commit-message: "Changes detected by Check Git Status Action" # optional
+          targets: "." #optional
 ```
 
 Save the file to `.github/workflows/build.yml`. It will start working on new Pull Requests.
@@ -58,6 +59,10 @@ The default value is `${{ github.token }}`, which is the GitHub token generated 
 ### `commit-message`
 
 When `push-if-not-clean` is set to `true` and `git status` is not clean this option will be used as the commit message when committing the changes. Its default value is `"Changes detected by Check Git Status Action"`.
+
+### `targets`
+
+The default value is `"."`. For example, it could be `"src"` or `"src/**/*.ts"` for a typical TypeScript project with source code files in the `src` directory. Use glob pattern to match multiple directories if necessary, for example `"{src,lib}"` instead of `"src lib"` or `"{src, lib}"` to match both the `src` directory and the `lib` directory.
 
 ## FAQ
 
