@@ -137,7 +137,7 @@ jobs:
           echo "::notice::Base PR number is $BASE_PR_NUMBER"
           gh pr create --base "$BASE_BRANCH_NAME" --title "Push Test PR for #$BASE_PR_NUMBER ($SHA)" --body "Generated from #$BASE_PR_NUMBER. Run $RUN_NUMBER. Attempt $RUN_ATTEMPT."
           TEST_PR_NUMBER=`gh pr view | grep 'number:' | cut -f 2`
-          echo "::set-output name=test-pr-number::$TEST_PR_NUMBER"
+          echo "test-pr-number=$TEST_PR_NUMBER" >> $GITHUB_OUTPUT
           echo "::notice::Test PR number is $TEST_PR_NUMBER"
 
       - name: Check PR
@@ -154,7 +154,7 @@ jobs:
 
           $(cat $CHECKS_TEMP_FILE)
           "
-          echo "::set-output name=checks-temp-file::$CHECKS_TEMP_FILE"
+          echo "checks-temp-file=$CHECKS_TEMP_FILE" >> $GITHUB_OUTPUT
 
       - name: Report Checks
         if: ${{ steps.check-pr.outputs.checks-temp-file != '' }}
@@ -272,7 +272,7 @@ jobs:
           echo "::notice::Base PR number is $BASE_PR_NUMBER"
           gh pr create --base "$BASE_BRANCH_NAME" --title "Request Change Test PR for #$BASE_PR_NUMBER ($SHA)" --body "Generated from #$BASE_PR_NUMBER. Run $RUN_NUMBER. Attempt $RUN_ATTEMPT."
           TEST_PR_NUMBER=`gh pr view | grep 'number:' | cut -f 2`
-          echo "::set-output name=test-pr-number::$TEST_PR_NUMBER"
+          echo "test-pr-number=$TEST_PR_NUMBER" >> $GITHUB_OUTPUT
           echo "::notice::Test PR number is $TEST_PR_NUMBER"
 
       - name: Check PR
@@ -289,7 +289,7 @@ jobs:
 
           $(cat $CHECKS_TEMP_FILE)
           "
-          echo "::set-output name=checks-temp-file::$CHECKS_TEMP_FILE"
+          echo "checks-temp-file=$CHECKS_TEMP_FILE" >> $GITHUB_OUTPUT
 
       - name: Report Checks
         if: ${{ steps.check-pr.outputs.checks-temp-file != '' }}
