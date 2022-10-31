@@ -18,7 +18,7 @@ jobs:
       - name: Make dirty
         id: make-dirty
         run: |
-          echo "::set-output name=touched-filename::`git rev-parse --verify HEAD`"
+          echo "touched-filename=`git rev-parse --verify HEAD`" >> $GITHUB_OUTPUT
           touch `git rev-parse --verify HEAD`
 
       - uses: ./
