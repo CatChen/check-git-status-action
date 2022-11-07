@@ -15,7 +15,17 @@ on:
 jobs:
   test_clean:
     name: Test Clean
-    if: ${{ !startsWith(github.head_ref, 'workflows/tests/') }}
+    if: |-
+      ${{
+        !startsWith(github.head_ref, 'workflows/tests/') && ((
+          github.actor == 'dependabot[bot]' && 
+          github.event_name != 'push' &&
+          github.event_name != 'pull_request'
+        ) || (
+          github.actor != 'dependabot[bot]' &&
+          github.event_name != 'workflow_run'
+        ))
+      }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -40,7 +50,17 @@ jobs:
 
   test_dirty_failure:
     name: Test Dirty Failure
-    if: ${{ !startsWith(github.head_ref, 'workflows/tests/') }}
+    if: |-
+      ${{
+        !startsWith(github.head_ref, 'workflows/tests/') && ((
+          github.actor == 'dependabot[bot]' && 
+          github.event_name != 'push' &&
+          github.event_name != 'pull_request'
+        ) || (
+          github.actor != 'dependabot[bot]' &&
+          github.event_name != 'workflow_run'
+        ))
+      }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -72,12 +92,14 @@ jobs:
     name: Test Dirty Push
     if: |-
       ${{
-        !startsWith(github.head_ref, 'workflows/tests/') && (
-          (github.event_name == 'pull_request' && github.actor != 'dependabot[bot]') ||
-          (github.event_name == 'workflow_run' && github.actor == 'dependabot[bot]') ||
-          github.event_name == 'workflow_dispatch' ||
-          github.event_name == 'workflow_call'
-        )
+        !startsWith(github.head_ref, 'workflows/tests/') && ((
+          github.actor == 'dependabot[bot]' && 
+          github.event_name != 'push' &&
+          github.event_name != 'pull_request'
+        ) || (
+          github.actor != 'dependabot[bot]' &&
+          github.event_name != 'workflow_run'
+        ))
       }}
     runs-on: ubuntu-latest
     steps:
@@ -207,12 +229,14 @@ jobs:
     name: Test Dirty Request Changes
     if: |-
       ${{
-        !startsWith(github.head_ref, 'workflows/tests/') && (
-          (github.event_name == 'pull_request' && github.actor != 'dependabot[bot]') ||
-          (github.event_name == 'workflow_run' && github.actor == 'dependabot[bot]') ||
-          github.event_name == 'workflow_dispatch' ||
-          github.event_name == 'workflow_call'
-        )
+        !startsWith(github.head_ref, 'workflows/tests/') && ((
+          github.actor == 'dependabot[bot]' && 
+          github.event_name != 'push' &&
+          github.event_name != 'pull_request'
+        ) || (
+          github.actor != 'dependabot[bot]' &&
+          github.event_name != 'workflow_run'
+        ))
       }}
     runs-on: ubuntu-latest
     steps:
