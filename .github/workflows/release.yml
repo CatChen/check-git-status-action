@@ -24,4 +24,3 @@ jobs:
       - uses: CatChen/accept-to-ship-action@v0.1.2
         with:
           release-type: patch
-          prerelease: true
