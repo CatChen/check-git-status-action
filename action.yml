@@ -17,6 +17,15 @@ inputs:
     description: "GitHub token to use when pushing new changes."
     required: false
     default: ${{ github.token }}
+    deprecationMessage: "Please use the push-github-token input instead."
+  push-github-token:
+    description: "GitHub token to use when pushing new changes."
+    required: false
+    default: ${{ github.token }}
+  request-changes-token:
+    description: "GitHub token to use when requesting changes in a Pull Request."
+    required: false
+    default: ${{ github.token }}
   commit-message:
     description: "The commit message to use when `push-if-not-clean` is `true` and there are changes."
     required: false
@@ -67,10 +76,15 @@ runs:
       if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.request-changes-if-not-clean == 'true' && github.event_name == 'pull_request' }}
       shell: bash
       env:
-        GH_TOKEN: ${{ inputs.github-token }}
+        GH_TOKEN: ${{ inputs.request-changes-token }}
+        LEGACY_TOKEN: ${{ inputs.github-token }}
         REQUEST_CHANGES_COMMENT: ${{ inputs.request-changes-comment }}
       run: |
         echo '::group::gh pr review'
+        if [[ "$GITHUB_TOKEN" = "$GH_TOKEN" ]] && [[ "$GITHUB_TOKEN" != "$LEGACY_TOKEN" ]]
+        then
+          GH_TOKEN="$LEGACY_TOKEN"
+        fi
         gh pr review -rb "$REQUEST_CHANGES_COMMENT"
         echo '::endgroup::'
 
@@ -80,9 +94,14 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ github.token }}
-        GH_TOKEN: ${{ inputs.github-token }}
+        GH_TOKEN: "${{ inputs.push-github-token }}"
+        LEGACY_TOKEN: ${{ inputs.github-token }}
       run: |
         echo '::group::git config'
+        if [[ "$GITHUB_TOKEN" = "$GH_TOKEN" ]] && [[ "$GITHUB_TOKEN" != "$LEGACY_TOKEN" ]]
+        then
+          GH_TOKEN="$LEGACY_TOKEN"
+        fi
         if [[ "$GITHUB_TOKEN" != "$GH_TOKEN" ]]
         then
           USERNAME=$(git log -n 1 --pretty=format:%an)
@@ -99,19 +118,28 @@ runs:
 
     - id: gh-auth
       name: gh auth
-      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' && github.token != inputs.github-token }}
+      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' }}
       shell: bash
       env:
-        GH_TOKEN: ${{ inputs.github-token }}
+        GITHUB_TOKEN: ${{ github.token }}
+        GH_TOKEN: "${{ inputs.push-github-token }}"
+        LEGACY_TOKEN: ${{ inputs.github-token }}
       run: |
         echo '::group::gh auth'
-        gh auth status
-        gh api -H "Accept: application/vnd.github+json" /user
-        gh auth setup-git
-        OVERRIDE_LOGIN=$(gh api -H "Accept: application/vnd.github+json" /user -q '.login')
-        OVERRIDE_REMOTE=$(git remote get-url origin --push | sed 's/^https:\/\//https:\/\/'"$OVERRIDE_LOGIN:$GH_TOKEN"'@/')
-        echo "login=$OVERRIDE_LOGIN" >> $GITHUB_OUTPUT
-        echo "remote=$OVERRIDE_REMOTE" >> $GITHUB_OUTPUT
+        if [[ "$GITHUB_TOKEN" = "$GH_TOKEN" ]] && [[ "$GITHUB_TOKEN" != "$LEGACY_TOKEN" ]]
+        then
+          GH_TOKEN="$LEGACY_TOKEN"
+        fi
+        if [[ "$GITHUB_TOKEN" != "$GH_TOKEN" ]]
+        then
+          gh auth status
+          gh api -H "Accept: application/vnd.github+json" /user
+          gh auth setup-git
+          OVERRIDE_LOGIN=$(gh api -H "Accept: application/vnd.github+json" /user -q '.login')
+          OVERRIDE_REMOTE=$(git remote get-url origin --push | sed 's/^https:\/\//https:\/\/'"$OVERRIDE_LOGIN:$GH_TOKEN"'@/')
+          echo "login=$OVERRIDE_LOGIN" >> $GITHUB_OUTPUT
+          echo "remote=$OVERRIDE_REMOTE" >> $GITHUB_OUTPUT
+        fi
         echo '::endgroup::'
 
     - id: git-commit
