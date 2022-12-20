@@ -5,6 +5,8 @@ on:
     paths: ["[0-9a-fA-F]+"]
   workflow_dispatch:
 
+permissions: write-all
+
 jobs:
   test_dirty_push_in_pull_request:
     name: Test Dirty Push in Pull Request
@@ -27,7 +29,6 @@ jobs:
           fail-if-not-clean: false
           push-if-not-clean: true
           request-changes-if-not-clean: false
-          github-token: ${{ secrets.CHECK_GIT_STATUS_ACTION_TOKEN }}
 
       - name: Verify outputs
         env:
@@ -78,7 +79,6 @@ jobs:
           fail-if-not-clean: false
           push-if-not-clean: false
           request-changes-if-not-clean: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Verify outputs
         env:
