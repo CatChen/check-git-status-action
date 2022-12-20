@@ -27,7 +27,7 @@ jobs:
           fail-if-not-clean: false
           push-if-not-clean: true
           request-changes-if-not-clean: false
-          github-token: ${{ secrets.CHECK_GIT_STATUS_ACTION_TOKEN }}
+          push-github-token: ${{ secrets.CHECK_GIT_STATUS_ACTION_TOKEN }}
 
       - name: Verify outputs
         env:
