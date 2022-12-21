@@ -17,8 +17,8 @@ inputs:
     description: "GitHub token to use when pushing new changes."
     required: false
     default: ${{ github.token }}
-    deprecationMessage: "Please use the push-github-token input instead."
-  push-github-token:
+    deprecationMessage: "Please use the push-token input instead."
+  push-token:
     description: "GitHub token to use when pushing new changes."
     required: false
     default: ${{ github.token }}
@@ -94,7 +94,7 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ github.token }}
-        GH_TOKEN: "${{ inputs.push-github-token }}"
+        GH_TOKEN: "${{ inputs.push-token }}"
         LEGACY_TOKEN: ${{ inputs.github-token }}
       run: |
         echo '::group::git config'
@@ -122,7 +122,7 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ github.token }}
-        GH_TOKEN: "${{ inputs.push-github-token }}"
+        GH_TOKEN: "${{ inputs.push-token }}"
         LEGACY_TOKEN: ${{ inputs.github-token }}
       run: |
         echo '::group::gh auth'
