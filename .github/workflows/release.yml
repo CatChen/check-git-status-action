@@ -23,13 +23,18 @@ on:
         required: true
         default: false
         type: boolean
-      dry-run:
-        description: "Dry run"
+      skip-if-no-diff:
+        description: "Skip if no diff"
         required: true
         default: false
         type: boolean
-      skip-if-no-diff:
-        description: "Skip if no diff"
+      diff-targets:
+        description: "Diff Targets"
+        required: false
+        default: "action.yml"
+        type: string
+      dry-run:
+        description: "Dry run"
         required: true
         default: false
         type: boolean
@@ -47,13 +52,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: main
+          ref: "main"
           fetch-depth: 0
 
-      - uses: CatChen/node-package-release-action@v1
+      - id: release
+        uses: CatChen/node-package-release-action@v1
         with:
           release-type: ${{ inputs.release-type || 'patch' }}
           prerelease: ${{ inputs.prerelease || false }}
           update-shorthand-release: true
           dry-run: ${{ inputs.dry-run || false }}
           skip-if-no-diff: ${{ inputs.skip-if-no-diff || true }}
+          diff-targets: ${{ inputs.diff-targets || 'action.yml' }}
