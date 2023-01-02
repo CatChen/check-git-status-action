@@ -21,8 +21,8 @@ on:
   check_suite:
     types: [completed]
   workflow_run:
-    branches: ["[0-9]+-[0-9]+-*"]
-    workflows: ["Test"]
+    branches: ['[0-9]+-[0-9]+-*']
+    workflows: ['Test']
     types: [completed]
 
 concurrency:
@@ -67,6 +67,8 @@ jobs:
       }}
     runs-on: ubuntu-latest
     permissions: write-all
+    outputs:
+      skipped: ${{ steps.ship.outputs.skipped }}
     steps:
       - uses: actions/checkout@v3
 
@@ -87,6 +89,8 @@ jobs:
       }}
     runs-on: ubuntu-latest
     permissions: write-all
+    outputs:
+      skipped: ${{ steps.ship.outputs.skipped }}
     steps:
       - uses: actions/checkout@v3
 
@@ -95,4 +99,12 @@ jobs:
           merge-method: squash
           timeout: 0
           request-zero-accept-zero: true
-          custom-hashtag: "#pass2ship"
+          custom-hashtag: '#pass2ship'
+
+  test:
+    needs: [accept-to-ship, pass-to-ship]
+    if: ${{ !needs.accept-to-ship.outputs.skipped || !needs.pass-to-ship.outputs.skipped }}
+    uses: ./.github/workflows/test.yml
+    secrets: inherit
+    with:
+      ref: 'refs/heads/main'
