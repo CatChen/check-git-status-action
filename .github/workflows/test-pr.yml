@@ -15,7 +15,7 @@ jobs:
       touched-filename: ${{ steps.make-dirty.outputs.touched-filename }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Make dirty
         id: make-dirty
@@ -45,7 +45,7 @@ jobs:
     needs: test_dirty_push_in_pull_request
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
@@ -64,7 +64,7 @@ jobs:
     if: ${{ startsWith(github.head_ref, 'workflows/tests/request-changes/') }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
 
@@ -95,7 +95,7 @@ jobs:
     needs: test_dirty_request_changes_in_pull_request
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
 
