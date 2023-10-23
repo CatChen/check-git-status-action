@@ -35,10 +35,12 @@ jobs:
         with:
           fail-if-not-clean: true # optional
           push-if-not-clean: false # optional
+          request-changes-if-not-clean: true # optional
           push-token: ${{ secrets.GITHUB_TOKEN }} # optional
           request-changes-token: ${{ secrets.GITHUB_TOKEN }} # optional
-          commit-message: "Changes detected by Check Git Status Action" # optional
-          targets: "." #optional
+          commit-message: 'Changes detected by Check Git Status Action' # optional
+          request-changes-comment: 'Changes detected by Check Git Status Action' # optional
+          targets: '.' #optional
 ```
 
 Save the file to `.github/workflows/build.yml`. It will start working on new Pull Requests.
@@ -53,6 +55,10 @@ When this option is set to `true` this action will fail if the project directory
 
 When this option is set to `true` this action will commit the new changes in the project directory and push the commit to the origin.
 
+### `request-changes-if-not-clean`
+
+When this option is set to `true` and it's run on a Pull Request this action will request change if the project directory isn't clean.
+
 ### `push-token`
 
 The default value is `${{ github.token }}`, which is the GitHub token generated for this workflow. This token determines the identity of the user that makes the commit and pushes it to the current branch. By default, it's GitHub Action bot. However, one GitHub Action doesn't trigger another. That means when a GitHub Action bot pushes to a branch it doesn't trigger any other GitHub Actions that are usually triggered by events from this branch or this Pull Request.
@@ -66,6 +72,10 @@ The default value is `${{ github.token }}`, which is the GitHub token generated 
 ### `commit-message`
 
 When `push-if-not-clean` is set to `true` and `git status` is not clean this option will be used as the commit message when committing the changes. Its default value is `"Changes detected by Check Git Status Action"`.
+
+### `request-changes-comment`
+
+When `request-changes-if-not-clean` is set to `true` and `git status` is not clean this option will be used as the comment posted to the Pull Request along side with the request changes. Its default value is `"Changes detected by Check Git Status Action"`.
 
 ### `targets`
 
@@ -89,6 +99,6 @@ name: Post-Verification
 on:
   workflow_run:
     branches: [master]
-    workflows: ["Verify Build"]
+    workflows: ['Verify Build']
     types: [completed]
 ```
