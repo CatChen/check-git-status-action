@@ -132,7 +132,7 @@ jobs:
           RUN_NUMBER: ${{ github.run_number }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
           BASE_BRANCH_NAME: ${{ github.head_ref }}
-          TEST_BRANCH_NAME: ${{ format('workflows/tests/push/{0}-{1}-on-{2}', github.run_number, github.run_attempt, github.sha) }}
+          TEST_BRANCH_NAME: ${{ format('workflows/tests/push/id-{0}/run-{1}/attempt-{2}/sha-{3}', github.run_id, github.run_number, github.run_attempt, github.sha) }}
           BASE_PR_NUMBER: ${{ github.event.pull_request.number || github.event.workflow_run.pull_requests.*.number }}
         run: |
           echo "::notice::Run number is $RUN_NUMBER"
@@ -148,7 +148,7 @@ jobs:
 
       - name: Git push
         env:
-          TEST_BRANCH_NAME: ${{ format('workflows/tests/push/{0}-{1}-on-{2}', github.run_number, github.run_attempt, github.sha) }}
+          TEST_BRANCH_NAME: ${{ format('workflows/tests/push/id-{0}/run-{1}/attempt-{2}/sha-{3}', github.run_id, github.run_number, github.run_attempt, github.sha) }}
         run: |
           git push -f --set-upstream origin "$TEST_BRANCH_NAME"
           echo "::notice::Remote test branch is origin/$TEST_BRANCH_NAME"
@@ -231,7 +231,7 @@ jobs:
           SHA: ${{ github.sha }}
           RUN_NUMBER: ${{ github.run_number }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
-          TEST_BRANCH_NAME: ${{ format('workflows/tests/push/{0}-{1}-on-{2}', github.run_number, github.run_attempt, github.sha) }}
+          TEST_BRANCH_NAME: ${{ format('workflows/tests/push/id-{0}/run-{1}/attempt-{2}/sha-{3}', github.run_id, github.run_number, github.run_attempt, github.sha) }}
         run: |
           git push -d origin "$TEST_BRANCH_NAME"
 
@@ -272,7 +272,7 @@ jobs:
           RUN_NUMBER: ${{ github.run_number }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
           BASE_BRANCH_NAME: ${{ github.head_ref }}
-          TEST_BRANCH_NAME: ${{ format('workflows/tests/request-changes/{0}-{1}-on-{2}', github.run_number, github.run_attempt, github.sha) }}
+          TEST_BRANCH_NAME: ${{ format('workflows/tests/request-changes/id-{0}/run-{1}/attempt-{2}/sha-{3}', github.run_id, github.run_number, github.run_attempt, github.sha) }}
           BASE_PR_NUMBER: ${{ github.event.pull_request.number || github.event.workflow_run.pull_requests.*.number }}
         run: |
           echo "::notice::Run number is $RUN_NUMBER"
@@ -288,7 +288,7 @@ jobs:
 
       - name: Git push
         env:
-          TEST_BRANCH_NAME: ${{ format('workflows/tests/request-changes/{0}-{1}-on-{2}', github.run_number, github.run_attempt, github.sha) }}
+          TEST_BRANCH_NAME: ${{ format('workflows/tests/request-changes/id-{0}/run-{1}/attempt-{2}/sha-{3}', github.run_id, github.run_number, github.run_attempt, github.sha) }}
         run: |
           git push -f --set-upstream origin "$TEST_BRANCH_NAME"
           echo "::notice::Remote test branch is origin/$TEST_BRANCH_NAME"
@@ -371,6 +371,6 @@ jobs:
           SHA: ${{ github.sha }}
           RUN_NUMBER: ${{ github.run_number }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
-          TEST_BRANCH_NAME: ${{ format('workflows/tests/request-changes/{0}-{1}-on-{2}', github.run_number, github.run_attempt, github.sha) }}
+          TEST_BRANCH_NAME: ${{ format('workflows/tests/request-changes/id-{0}/run-{1}/attempt-{2}/sha-{3}', github.run_id, github.run_number, github.run_attempt, github.sha) }}
         run: |
           git push -d origin "$TEST_BRANCH_NAME"
