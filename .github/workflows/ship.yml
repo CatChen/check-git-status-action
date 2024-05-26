@@ -72,9 +72,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - id: ship
-        uses: CatChen/accept-to-ship-action@v0.4
+      - uses: getsentry/action-github-app-token@v3
+        id: get-github-app-token
         with:
+          app_id: ${{ secrets.ACCEPT_TO_SHIP_BOT_APP_ID }}
+          private_key: ${{ secrets.ACCEPT_TO_SHIP_BOT_APP_PRIVATE_KEY }}
+
+      - id: ship
+        uses: CatChen/accept-to-ship-action@v0.5
+        with:
+          github-token: ${{ steps.get-github-app-token.outputs.token }}
           merge-method: squash
           timeout: 0
 
@@ -95,18 +102,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - id: ship
-        uses: CatChen/accept-to-ship-action@v0.4
+      - uses: getsentry/action-github-app-token@v3
+        id: get-github-app-token
         with:
+          app_id: ${{ secrets.ACCEPT_TO_SHIP_BOT_APP_ID }}
+          private_key: ${{ secrets.ACCEPT_TO_SHIP_BOT_APP_PRIVATE_KEY }}
+
+      - id: ship
+        uses: CatChen/accept-to-ship-action@v0.5
+        with:
+          github-token: ${{ steps.get-github-app-token.outputs.token }}
           merge-method: squash
           timeout: 0
           request-zero-accept-zero: true
           custom-hashtag: '#pass2ship'
-
-  test:
-    needs: [accept-to-ship, pass-to-ship]
-    if: ${{ !needs.accept-to-ship.outputs.skipped || !needs.pass-to-ship.outputs.skipped }}
-    uses: ./.github/workflows/test.yml
-    secrets: inherit
-    with:
-      ref: 'refs/heads/main'
