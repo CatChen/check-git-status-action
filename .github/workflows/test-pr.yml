@@ -71,6 +71,77 @@ jobs:
             exit 1
           fi
 
+  test_dirty_push_as_app_in_pull_request:
+    name: Test Dirty Push as App in Pull Request
+    if: ${{ startsWith(github.head_ref, 'workflows/tests/push-as-app/') }}
+    outputs:
+      touched-filename: ${{ steps.make-dirty.outputs.touched-filename }}
+      pushed-commit-sha: ${{ steps.test-action.outputs.sha }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Make dirty
+        id: make-dirty
+        run: |
+          echo "touched-filename=`git rev-parse --verify HEAD`" >> $GITHUB_OUTPUT
+          touch `git rev-parse --verify HEAD`
+
+      - uses: actions/create-github-app-token@v1
+        id: get-github-app-token
+        with:
+          app-id: ${{ secrets.CHECK_GIT_STATUS_BOT_APP_ID }}
+          private-key: ${{ secrets.CHECK_GIT_STATUS_BOT_APP_PRIVATE_KEY }}
+
+      - uses: ./
+        id: test-action
+        with:
+          fail-if-not-clean: false
+          push-if-not-clean: true
+          request-changes-if-not-clean: false
+          push-token: ${{ steps.get-github-app-token.outputs.token }}
+
+      - name: Verify outputs
+        env:
+          TEST_ACTION_OUTPUT_STATUS: ${{ steps.test-action.outputs.status }}
+          TEST_ACTION_OUTPUT_SHA: ${{ steps.test-action.outputs.sha }}
+        run: |
+          if [[ $TEST_ACTION_OUTPUT_STATUS != "dirty" ]]
+          then
+            exit 1;
+          fi
+          if [[ -z "$TEST_ACTION_OUTPUT_SHA" ]]
+          then
+            exit 1;
+          fi
+
+  verify_dirty_push_as_app_in_pull_request:
+    name: Verify Dirty Push as App in Pull Request
+    if: ${{ startsWith(github.head_ref, 'workflows/tests/push-as-app/') }}
+    needs: test_dirty_push_as_app_in_pull_request
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Verify outputs
+        env:
+          TOUCHED_FILENAME: ${{ needs.test_dirty_push_as_app_in_pull_request.outputs.touched-filename }}
+          PUSHED_COMMIT_SHA: ${{ needs.test_dirty_push_as_app_in_pull_request.outputs.pushed-commit-sha }}
+        run: |
+          if [[ ! -f "$TOUCHED_FILENAME" ]]
+          then
+            exit 1
+          fi
+
+          HEAD_COMMIT_SHA=$(git rev-parse --short HEAD)
+          if [[ $HEAD_COMMIT_SHA != $PUSHED_COMMIT_SHA ]]
+          then
+            exit 1
+          fi
+
   test_dirty_request_changes_in_pull_request:
     name: Test Dirty Request Changes in Pull Request
     if: ${{ startsWith(github.head_ref, 'workflows/tests/request-changes/') }}
