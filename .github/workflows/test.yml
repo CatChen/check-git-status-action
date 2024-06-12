@@ -178,18 +178,44 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           CHECKS_TEMP_FILE="$(mktemp)"
-          sleep 10
-          gh pr checks --watch >> $CHECKS_TEMP_FILE
-          sleep 10
-          gh pr checks --watch >> $CHECKS_TEMP_FILE
-          echo "::notice::Temp file content:
+          echo "checks-temp-file=$CHECKS_TEMP_FILE" >> $GITHUB_OUTPUT;
 
-          $(cat $CHECKS_TEMP_FILE)
-          "
-          echo "checks-temp-file=$CHECKS_TEMP_FILE" >> $GITHUB_OUTPUT
+          # trap '
+          #   EXIT_CODE=$?;
+          #   echo "::error::$EXIT_CODE";
+          #   echo "::notice::Temp file content:
+
+          #   $(cat $CHECKS_TEMP_FILE)
+          #   ";
+          #   # exit $EXIT_CODE;
+          #   ' ERR
+
+          sleep 10
+          # CHECKS=$(gh pr checks)
+          # echo "$CHECKS"
+          # echo "$CHECKS" >> $CHECKS_TEMP_FILE
+
+          # PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
+          # echo $PENDING
+
+          # while [ $PENDING -gt 0 -a -n "$PENDING" ]
+          # do
+          #   echo "::group::Pending checks: $PENDING"
+          #   gh pr checks --watch >> $CHECKS_TEMP_FILE
+          #   sleep 10
+          #   CHECKS=$(gh pr checks)
+          #   echo "$CHECKS" >> $CHECKS_TEMP_FILE
+          #   PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
+          #   echo "::endgroup::"
+          # done
+
+          # echo "::notice::Temp file content:
+            
+          # $(cat $CHECKS_TEMP_FILE)
+          # "
 
       - name: Report Checks
-        if: ${{ steps.check-pr.outputs.checks-temp-file != '' }}
+        if: ${{ always() && steps.check-pr.outputs.checks-temp-file != '' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BASE_PR_NUMBER: ${{ github.event.pull_request.number || github.event.workflow_run.pull_requests[0].number }}
@@ -324,18 +350,39 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           CHECKS_TEMP_FILE="$(mktemp)"
-          sleep 10
-          gh pr checks --watch >> $CHECKS_TEMP_FILE
-          sleep 10
-          gh pr checks --watch >> $CHECKS_TEMP_FILE
-          echo "::notice::Temp file content:
+          echo "checks-temp-file=$CHECKS_TEMP_FILE" >> $GITHUB_OUTPUT;
 
+          trap '
+            EXIT_CODE=$?;
+            echo "::error::$EXIT_CODE";
+            echo "::notice::Temp file content:
+
+            $(cat $CHECKS_TEMP_FILE)
+            ";
+            # exit $EXIT_CODE;
+            ' ERR
+
+          sleep 10
+          CHECKS=$(gh pr checks)
+          echo "$CHECKS" >> $CHECKS_TEMP_FILE
+          PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
+          while [ $PENDING -ne 0 ]
+          do
+            echo "::group::Pending checks: $PENDING"
+            gh pr checks --watch >> $CHECKS_TEMP_FILE
+            sleep 10
+            CHECKS=$(gh pr checks)
+            echo "$CHECKS" >> $CHECKS_TEMP_FILE
+            PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
+            echo "::endgroup::"
+          done
+          echo "::notice::Temp file content:
+            
           $(cat $CHECKS_TEMP_FILE)
           "
-          echo "checks-temp-file=$CHECKS_TEMP_FILE" >> $GITHUB_OUTPUT
 
       - name: Report Checks
-        if: ${{ steps.check-pr.outputs.checks-temp-file != '' }}
+        if: ${{ always() && steps.check-pr.outputs.checks-temp-file != '' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BASE_PR_NUMBER: ${{ github.event.pull_request.number || github.event.workflow_run.pull_requests[0].number }}
@@ -470,18 +517,39 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           CHECKS_TEMP_FILE="$(mktemp)"
-          sleep 10
-          gh pr checks --watch >> $CHECKS_TEMP_FILE
-          sleep 10
-          gh pr checks --watch >> $CHECKS_TEMP_FILE
-          echo "::notice::Temp file content:
+          echo "checks-temp-file=$CHECKS_TEMP_FILE" >> $GITHUB_OUTPUT;
 
+          # trap '
+          #   EXIT_CODE=$?;
+          #   echo "::error::$EXIT_CODE";
+          #   echo "::notice::Temp file content:
+
+          #   $(cat $CHECKS_TEMP_FILE)
+          #   ";
+          #   # exit $EXIT_CODE;
+          #   ' ERR
+
+          sleep 10
+          CHECKS=$(gh pr checks)
+          echo "$CHECKS" >> $CHECKS_TEMP_FILE
+          PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
+          while [ $PENDING -ne 0 ]
+          do
+            echo "::group::Pending checks: $PENDING"
+            gh pr checks --watch >> $CHECKS_TEMP_FILE
+            sleep 10
+            CHECKS=$(gh pr checks)
+            echo "$CHECKS" >> $CHECKS_TEMP_FILE
+            PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
+            echo "::endgroup::"
+          done
+          echo "::notice::Temp file content:
+            
           $(cat $CHECKS_TEMP_FILE)
           "
-          echo "checks-temp-file=$CHECKS_TEMP_FILE" >> $GITHUB_OUTPUT
 
       - name: Report Checks
-        if: ${{ steps.check-pr.outputs.checks-temp-file != '' }}
+        if: ${{ always() && steps.check-pr.outputs.checks-temp-file != '' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BASE_PR_NUMBER: ${{ github.event.pull_request.number || github.event.workflow_run.pull_requests[0].number }}
