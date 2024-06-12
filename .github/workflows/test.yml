@@ -178,18 +178,44 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           CHECKS_TEMP_FILE="$(mktemp)"
-          sleep 10
-          gh pr checks --watch >> $CHECKS_TEMP_FILE
-          sleep 10
-          gh pr checks --watch >> $CHECKS_TEMP_FILE
-          echo "::notice::Temp file content:
+          echo "checks-temp-file=$CHECKS_TEMP_FILE" >> $GITHUB_OUTPUT;
 
-          $(cat $CHECKS_TEMP_FILE)
-          "
-          echo "checks-temp-file=$CHECKS_TEMP_FILE" >> $GITHUB_OUTPUT
+          # trap '
+          #   EXIT_CODE=$?;
+          #   echo "::error::$EXIT_CODE";
+          #   echo "::notice::Temp file content:
+
+          #   $(cat $CHECKS_TEMP_FILE)
+          #   ";
+          #   # exit $EXIT_CODE;
+          #   ' ERR
+
+          sleep 10
+          CHECKS=$(gh pr checks)
+          echo "$CHECKS"
+          echo "$CHECKS" >> $CHECKS_TEMP_FILE
+
+          # PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
+          # echo $PENDING
+
+          # while [ $PENDING -gt 0 -a -n "$PENDING" ]
+          # do
+          #   echo "::group::Pending checks: $PENDING"
+          #   gh pr checks --watch >> $CHECKS_TEMP_FILE
+          #   sleep 10
+          #   CHECKS=$(gh pr checks)
+          #   echo "$CHECKS" >> $CHECKS_TEMP_FILE
+          #   PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
+          #   echo "::endgroup::"
+          # done
+
+          # echo "::notice::Temp file content:
+            
+          # $(cat $CHECKS_TEMP_FILE)
+          # "
 
       - name: Report Checks
-        if: ${{ steps.check-pr.outputs.checks-temp-file != '' }}
+        if: ${{ always() && steps.check-pr.outputs.checks-temp-file != '' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BASE_PR_NUMBER: ${{ github.event.pull_request.number || github.event.workflow_run.pull_requests[0].number }}
@@ -200,7 +226,13 @@ jobs:
 
           | Check | Status |
           | --- | --- |
-          $(cat $CHECKS_TEMP_FILE | grep -E 'https://' | tac | awk 'BEGIN { FS ="\t" } ; { if (! seen[$1]++) print }' | sed -E 's/(.*)\t(.*)\t(.*)\t(.*)\t(.*)/| [\1](\4) | \2 |/')"
+          $(cat $CHECKS_TEMP_FILE |
+            grep -E 'https://' |
+            tac |
+            awk 'BEGIN { FS ="\t" } ; { if (! seen[$1]++) print }' |
+            sed -E 's/(.*)\t(pass)\t(.*)\t(.*)\t(.*)/| [**\1**](\4) | \2 |/;
+              s/(.*)\t(skipping)\t(.*)\t(.*)\t(.*)/| [~\1~](\4) | \2 |/;
+              s/(.*)\t(.*)\t(.*)\t(.*)\t(.*)/| [\1](\4) | \2 |/')"
           rm -f $CHECKS_TEMP_FILE
 
       - name: Close PR
@@ -305,7 +337,7 @@ jobs:
           BASE_PR_NUMBER: ${{ github.event.pull_request.number || github.event.workflow_run.pull_requests[0].number }}
         run: |
           echo "::notice::Base PR number is $BASE_PR_NUMBER"
-          gh pr create --base "$BASE_BRANCH_NAME" --title "Push Test PR for #$BASE_PR_NUMBER ($SHA)" --body "Generated from #$BASE_PR_NUMBER.
+          gh pr create --base "$BASE_BRANCH_NAME" --title "Push as App Test PR for #$BASE_PR_NUMBER ($SHA)" --body "Generated from #$BASE_PR_NUMBER.
 
           Run ID: [$RUN_ID]($(gh run view $RUN_ID --json 'url' --jq '.url')). Number: $RUN_NUMBER. Attempt: $RUN_ATTEMPT."
           TEST_PR_NUMBER=`gh pr view | grep 'number:' | cut -f 2`
@@ -318,18 +350,39 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           CHECKS_TEMP_FILE="$(mktemp)"
-          sleep 10
-          gh pr checks --watch >> $CHECKS_TEMP_FILE
-          sleep 10
-          gh pr checks --watch >> $CHECKS_TEMP_FILE
-          echo "::notice::Temp file content:
+          echo "checks-temp-file=$CHECKS_TEMP_FILE" >> $GITHUB_OUTPUT;
 
+          trap '
+            EXIT_CODE=$?;
+            echo "::error::$EXIT_CODE";
+            echo "::notice::Temp file content:
+
+            $(cat $CHECKS_TEMP_FILE)
+            ";
+            # exit $EXIT_CODE;
+            ' ERR
+
+          sleep 10
+          CHECKS=$(gh pr checks)
+          echo "$CHECKS" >> $CHECKS_TEMP_FILE
+          PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
+          while [ $PENDING -ne 0 ]
+          do
+            echo "::group::Pending checks: $PENDING"
+            gh pr checks --watch >> $CHECKS_TEMP_FILE
+            sleep 10
+            CHECKS=$(gh pr checks)
+            echo "$CHECKS" >> $CHECKS_TEMP_FILE
+            PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
+            echo "::endgroup::"
+          done
+          echo "::notice::Temp file content:
+            
           $(cat $CHECKS_TEMP_FILE)
           "
-          echo "checks-temp-file=$CHECKS_TEMP_FILE" >> $GITHUB_OUTPUT
 
       - name: Report Checks
-        if: ${{ steps.check-pr.outputs.checks-temp-file != '' }}
+        if: ${{ always() && steps.check-pr.outputs.checks-temp-file != '' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BASE_PR_NUMBER: ${{ github.event.pull_request.number || github.event.workflow_run.pull_requests[0].number }}
@@ -340,7 +393,13 @@ jobs:
 
           | Check | Status |
           | --- | --- |
-          $(cat $CHECKS_TEMP_FILE | grep -E 'https://' | tac | awk 'BEGIN { FS ="\t" } ; { if (! seen[$1]++) print }' | sed -E 's/(.*)\t(.*)\t(.*)\t(.*)\t(.*)/| [\1](\4) | \2 |/')"
+          $(cat $CHECKS_TEMP_FILE |
+            grep -E 'https://' |
+            tac |
+            awk 'BEGIN { FS ="\t" } ; { if (! seen[$1]++) print }' |
+            sed -E 's/(.*)\t(pass)\t(.*)\t(.*)\t(.*)/| [**\1**](\4) | \2 |/;
+              s/(.*)\t(skipping)\t(.*)\t(.*)\t(.*)/| [~\1~](\4) | \2 |/;
+              s/(.*)\t(.*)\t(.*)\t(.*)\t(.*)/| [\1](\4) | \2 |/')"
           rm -f $CHECKS_TEMP_FILE
 
       - name: Close PR
@@ -458,18 +517,39 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           CHECKS_TEMP_FILE="$(mktemp)"
-          sleep 10
-          gh pr checks --watch >> $CHECKS_TEMP_FILE
-          sleep 10
-          gh pr checks --watch >> $CHECKS_TEMP_FILE
-          echo "::notice::Temp file content:
+          echo "checks-temp-file=$CHECKS_TEMP_FILE" >> $GITHUB_OUTPUT;
 
+          # trap '
+          #   EXIT_CODE=$?;
+          #   echo "::error::$EXIT_CODE";
+          #   echo "::notice::Temp file content:
+
+          #   $(cat $CHECKS_TEMP_FILE)
+          #   ";
+          #   # exit $EXIT_CODE;
+          #   ' ERR
+
+          sleep 10
+          CHECKS=$(gh pr checks)
+          echo "$CHECKS" >> $CHECKS_TEMP_FILE
+          PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
+          while [ $PENDING -ne 0 ]
+          do
+            echo "::group::Pending checks: $PENDING"
+            gh pr checks --watch >> $CHECKS_TEMP_FILE
+            sleep 10
+            CHECKS=$(gh pr checks)
+            echo "$CHECKS" >> $CHECKS_TEMP_FILE
+            PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
+            echo "::endgroup::"
+          done
+          echo "::notice::Temp file content:
+            
           $(cat $CHECKS_TEMP_FILE)
           "
-          echo "checks-temp-file=$CHECKS_TEMP_FILE" >> $GITHUB_OUTPUT
 
       - name: Report Checks
-        if: ${{ steps.check-pr.outputs.checks-temp-file != '' }}
+        if: ${{ always() && steps.check-pr.outputs.checks-temp-file != '' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BASE_PR_NUMBER: ${{ github.event.pull_request.number || github.event.workflow_run.pull_requests[0].number }}
@@ -480,7 +560,13 @@ jobs:
 
           | Check | Status |
           | --- | --- |
-          $(cat $CHECKS_TEMP_FILE | grep -E 'https://' | tac | awk 'BEGIN { FS ="\t" } ; { if (! seen[$1]++) print }' | sed -E 's/(.*)\t(.*)\t(.*)\t(.*)\t(.*)/| [\1](\4) | \2 |/')"
+          $(cat $CHECKS_TEMP_FILE |
+            grep -E 'https://' |
+            tac |
+            awk 'BEGIN { FS ="\t" } ; { if (! seen[$1]++) print }' |
+            sed -E 's/(.*)\t(pass)\t(.*)\t(.*)\t(.*)/| [**\1**](\4) | \2 |/;
+              s/(.*)\t(skipping)\t(.*)\t(.*)\t(.*)/| [~\1~](\4) | \2 |/;
+              s/(.*)\t(.*)\t(.*)\t(.*)\t(.*)/| [\1](\4) | \2 |/')"
           rm -f $CHECKS_TEMP_FILE
 
       - name: Close PR
