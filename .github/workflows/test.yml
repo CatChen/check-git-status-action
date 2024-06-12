@@ -200,7 +200,13 @@ jobs:
 
           | Check | Status |
           | --- | --- |
-          $(cat $CHECKS_TEMP_FILE | grep -E 'https://' | tac | awk 'BEGIN { FS ="\t" } ; { if (! seen[$1]++) print }' | sed -E 's/(.*)\t(.*)\t(.*)\t(.*)\t(.*)/| [\1](\4) | \2 |/')"
+          $(cat $CHECKS_TEMP_FILE |
+            grep -E 'https://' |
+            tac |
+            awk 'BEGIN { FS ="\t" } ; { if (! seen[$1]++) print }' |
+            sed -E 's/(.*)\t(pass)\t(.*)\t(.*)\t(.*)/| [**\1**](\4) | \2 |/;
+              s/(.*)\t(skipping)\t(.*)\t(.*)\t(.*)/| [~\1~](\4) | \2 |/;
+              s/(.*)\t(.*)\t(.*)\t(.*)\t(.*)/| [\1](\4) | \2 |/')"
           rm -f $CHECKS_TEMP_FILE
 
       - name: Close PR
@@ -305,7 +311,7 @@ jobs:
           BASE_PR_NUMBER: ${{ github.event.pull_request.number || github.event.workflow_run.pull_requests[0].number }}
         run: |
           echo "::notice::Base PR number is $BASE_PR_NUMBER"
-          gh pr create --base "$BASE_BRANCH_NAME" --title "Push Test PR for #$BASE_PR_NUMBER ($SHA)" --body "Generated from #$BASE_PR_NUMBER.
+          gh pr create --base "$BASE_BRANCH_NAME" --title "Push as App Test PR for #$BASE_PR_NUMBER ($SHA)" --body "Generated from #$BASE_PR_NUMBER.
 
           Run ID: [$RUN_ID]($(gh run view $RUN_ID --json 'url' --jq '.url')). Number: $RUN_NUMBER. Attempt: $RUN_ATTEMPT."
           TEST_PR_NUMBER=`gh pr view | grep 'number:' | cut -f 2`
@@ -340,7 +346,13 @@ jobs:
 
           | Check | Status |
           | --- | --- |
-          $(cat $CHECKS_TEMP_FILE | grep -E 'https://' | tac | awk 'BEGIN { FS ="\t" } ; { if (! seen[$1]++) print }' | sed -E 's/(.*)\t(.*)\t(.*)\t(.*)\t(.*)/| [\1](\4) | \2 |/')"
+          $(cat $CHECKS_TEMP_FILE |
+            grep -E 'https://' |
+            tac |
+            awk 'BEGIN { FS ="\t" } ; { if (! seen[$1]++) print }' |
+            sed -E 's/(.*)\t(pass)\t(.*)\t(.*)\t(.*)/| [**\1**](\4) | \2 |/;
+              s/(.*)\t(skipping)\t(.*)\t(.*)\t(.*)/| [~\1~](\4) | \2 |/;
+              s/(.*)\t(.*)\t(.*)\t(.*)\t(.*)/| [\1](\4) | \2 |/')"
           rm -f $CHECKS_TEMP_FILE
 
       - name: Close PR
@@ -480,7 +492,13 @@ jobs:
 
           | Check | Status |
           | --- | --- |
-          $(cat $CHECKS_TEMP_FILE | grep -E 'https://' | tac | awk 'BEGIN { FS ="\t" } ; { if (! seen[$1]++) print }' | sed -E 's/(.*)\t(.*)\t(.*)\t(.*)\t(.*)/| [\1](\4) | \2 |/')"
+          $(cat $CHECKS_TEMP_FILE |
+            grep -E 'https://' |
+            tac |
+            awk 'BEGIN { FS ="\t" } ; { if (! seen[$1]++) print }' |
+            sed -E 's/(.*)\t(pass)\t(.*)\t(.*)\t(.*)/| [**\1**](\4) | \2 |/;
+              s/(.*)\t(skipping)\t(.*)\t(.*)\t(.*)/| [~\1~](\4) | \2 |/;
+              s/(.*)\t(.*)\t(.*)\t(.*)\t(.*)/| [\1](\4) | \2 |/')"
           rm -f $CHECKS_TEMP_FILE
 
       - name: Close PR
