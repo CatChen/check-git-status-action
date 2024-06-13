@@ -142,24 +142,14 @@ runs:
         DEFAULT_TOKEN: ${{ github.token }}
       run: |
         echo '::group::Get login'
-        if [[ "$DEFAULT_TOKEN" != "$GH_TOKEN" ]]
-        then
-          # Use the user or the app behind the push-token as the commit author if it's assigned.
-          USER=$(gh api graphql \
-            -H "X-Github-Next-Global-ID: 1" \
-            -f query="query { viewer { login, global_id: id } }" \
-            -q ".data.viewer")
-          USER_LOGIN=$(echo "$USER" | jq -r ".login")
-          echo "::notice::Login behind push-token is $USER_LOGIN"
-          USER_GLOBAL_ID=$(echo "$USER" | jq -r ".global_id")
-          echo "::notice::$USER_LOGIN has a global id $USER_GLOBAL_ID"
-        else
-          # Use GitHub Actions Bot as the commit author if the push-token isn't assigned.
-          # USER_NAME="GitHub Action"
-          # USER_EMAIL="41898282+github-actions[bot]@users.noreply.github.com"
-          USER_LOGIN="github-actions[bot]"
-          echo "::notice::Default login used for push is $USER_LOGIN"
-        fi
+        USER=$(gh api graphql \
+          -H "X-Github-Next-Global-ID: 1" \
+          -f query="query { viewer { login, global_id: id } }" \
+          -q ".data.viewer")
+        USER_LOGIN=$(echo "$USER" | jq -r ".login")
+        echo "::notice::Login behind push-token is $USER_LOGIN"
+        USER_GLOBAL_ID=$(echo "$USER" | jq -r ".global_id")
+        echo "::notice::$USER_LOGIN has a global id $USER_GLOBAL_ID"
         echo "user-login=$USER_LOGIN" >> $GITHUB_OUTPUT
         echo "user-global-id=$USER_GLOBAL_ID" >> $GITHUB_OUTPUT
         echo '::endgroup'
