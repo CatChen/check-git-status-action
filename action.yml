@@ -111,6 +111,20 @@ runs:
         echo "push-token=$PUSH_TOKEN" >> $GITHUB_OUTPUT
         echo '::endgroup'
 
+    - id: git-fetch
+      name: git fetch
+      if: |-
+        ${{
+          steps.git-status.outputs.status == 'dirty' &&
+          (inputs.request-changes-if-not-clean == 'true' || inputs.push-if-not-clean == 'true') && 
+          github.event_name == 'pull_request'
+        }}
+      shell: bash
+      run: |
+        echo '::group::git fetch'
+        git fetch --unshallow origin
+        echo '::endgroup::'
+
     - id: gh-pr-review
       name: gh pr review
       if: |-
@@ -291,20 +305,6 @@ runs:
         git commit -m "$COMMIT_MESSAGE"
         echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
         echo '::groupend::'
-
-    - id: git-fetch
-      name: git fetch
-      if: |-
-        ${{
-          steps.git-status.outputs.status == 'dirty' &&
-          inputs.push-if-not-clean == 'true' &&
-          github.event_name == 'pull_request'
-        }}
-      shell: bash
-      run: |
-        echo '::group::git fetch'
-        git fetch --unshallow origin
-        echo '::endgroup::'
 
     - id: git-push
       name: git push
