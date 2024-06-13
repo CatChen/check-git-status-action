@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+  <circle cx="48" cy="48" r="48" fill="#d73a49" />
+  <svg
+    width="43%"
+    height="43%"
+    x="28.5%"
+    y="28.5%"
+    fill="none"
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="2"
+    viewBox="0 0 24 24"
+    style="color:#fff"
+  >
+    <polygon points="14 2 18 6 7 17 3 17 3 13 14 2" />
+    <line x1="3" y1="22" x2="21" y2="22" />
+  </svg>
+</svg>
