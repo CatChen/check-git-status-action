@@ -83,6 +83,10 @@ jobs:
           touch `git rev-parse --verify HEAD`
 
       - uses: ./
+        with:
+          fail-if-not-clean: true
+          push-if-not-clean: false
+          request-changes-if-not-clean: false
         id: test-action
         continue-on-error: true
 
