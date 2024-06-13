@@ -79,19 +79,21 @@ jobs:
       pushed-commit-sha: ${{ steps.test-action.outputs.sha }}
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/create-github-app-token@v1
+        id: get-github-app-token
+        with:
+          app-id: ${{ secrets.CHECK_GIT_STATUS_BOT_APP_ID }}
+          private-key: ${{ secrets.CHECK_GIT_STATUS_BOT_APP_PRIVATE_KEY }}
+
       - uses: actions/checkout@v4
+        with:
+          token: ${{ steps.get-github-app-token.outputs.token }}
 
       - name: Make dirty
         id: make-dirty
         run: |
           echo "touched-filename=`git rev-parse --verify HEAD`" >> $GITHUB_OUTPUT
           touch `git rev-parse --verify HEAD`
-
-      - uses: actions/create-github-app-token@v1
-        id: get-github-app-token
-        with:
-          app-id: ${{ secrets.CHECK_GIT_STATUS_BOT_APP_ID }}
-          private-key: ${{ secrets.CHECK_GIT_STATUS_BOT_APP_PRIVATE_KEY }}
 
       - uses: ./
         id: test-action
