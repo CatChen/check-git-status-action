@@ -198,13 +198,16 @@ jobs:
 
           if [[ -s $CHECKS_TEMP_FILE ]]
           then
-            echo "::notice::Temp file content:
-
-            $(cat $CHECKS_TEMP_FILE)
-            "
+            echo "::group::Temp file content"
+            cat $CHECKS_TEMP_FILE
+            echo "::endgroup::"
           else
             echo "checks-temp-file=" >> $GITHUB_OUTPUT;
           fi
+
+          sleep 10
+          CHECKS=$(gh pr checks | tee -a $CHECKS_TEMP_FILE) # Wait and refresh one more time to eliminate the cached pendings
+          gh pr checks # Let check outcome determine the step exit code
 
       - name: Report Checks
         if: ${{ always() && steps.check-pr.outputs.checks-temp-file != '' }}
@@ -222,10 +225,10 @@ jobs:
             grep -E 'https://' |
             tac |
             awk 'BEGIN { FS ="\t" } ; { if (! seen[$1]++) print }' |
-            sed -E 's/(.*)\t(pass)\t(.*)\t(.*)\t(.*)/| [**\1**](\4) | \2 | \3 |/;
-              s/(.*)\t(fail)\t(.*)\t(.*)\t(.*)/| [*\1*](\4) | \2 | \3 |/;
-              s/(.*)\t(skipping)\t(.*)\t(.*)\t(.*)/| [~\1~](\4) | \2 | |/;
-              s/(.*)\t(pending)\t(.*)\t(.*)\t(.*)/| [\1](\4) | \2 | |/;
+            sed -E 's/(.*)\t(pass)\t(.*)\t(.*)\t(.*)/| [**\1**](\4) | ✅ | \3 |/;
+              s/(.*)\t(fail)\t(.*)\t(.*)\t(.*)/| [*\1*](\4) | ⛔ | \3 |/;
+              s/(.*)\t(skipping)\t(.*)\t(.*)\t(.*)/| [~\1~](\4) | ⏭️ | |/;
+              s/(.*)\t(pending)\t(.*)\t(.*)\t(.*)/| [\1](\4) | 🔄 | |/;
               s/(.*)\t(.*)\t(.*)\t(.*)\t(.*)/| [\1](\4) | \2 | \3 |/')"
           rm -f $CHECKS_TEMP_FILE
 
@@ -364,13 +367,16 @@ jobs:
 
           if [[ -s $CHECKS_TEMP_FILE ]]
           then
-            echo "::notice::Temp file content:
-
-            $(cat $CHECKS_TEMP_FILE)
-            "
+            echo "::group::Temp file content"
+            cat $CHECKS_TEMP_FILE
+            echo "::endgroup::"
           else
             echo "checks-temp-file=" >> $GITHUB_OUTPUT;
           fi
+
+          sleep 10
+          CHECKS=$(gh pr checks | tee -a $CHECKS_TEMP_FILE) # Wait and refresh one more time to eliminate the cached pendings
+          gh pr checks # Let check outcome determine the step exit code
 
       - name: Report Checks
         if: ${{ always() && steps.check-pr.outputs.checks-temp-file != '' }}
@@ -388,10 +394,10 @@ jobs:
             grep -E 'https://' |
             tac |
             awk 'BEGIN { FS ="\t" } ; { if (! seen[$1]++) print }' |
-            sed -E 's/(.*)\t(pass)\t(.*)\t(.*)\t(.*)/| [**\1**](\4) | \2 | \3 |/;
-              s/(.*)\t(fail)\t(.*)\t(.*)\t(.*)/| [*\1*](\4) | \2 | \3 |/;
-              s/(.*)\t(skipping)\t(.*)\t(.*)\t(.*)/| [~\1~](\4) | \2 | |/;
-              s/(.*)\t(pending)\t(.*)\t(.*)\t(.*)/| [\1](\4) | \2 | |/;
+            sed -E 's/(.*)\t(pass)\t(.*)\t(.*)\t(.*)/| [**\1**](\4) | ✅ | \3 |/;
+              s/(.*)\t(fail)\t(.*)\t(.*)\t(.*)/| [*\1*](\4) | ⛔ | \3 |/;
+              s/(.*)\t(skipping)\t(.*)\t(.*)\t(.*)/| [~\1~](\4) | ⏭️ | |/;
+              s/(.*)\t(pending)\t(.*)\t(.*)\t(.*)/| [\1](\4) | 🔄 | |/;
               s/(.*)\t(.*)\t(.*)\t(.*)\t(.*)/| [\1](\4) | \2 | \3 |/')"
           rm -f $CHECKS_TEMP_FILE
 
@@ -530,13 +536,16 @@ jobs:
 
           if [[ -s $CHECKS_TEMP_FILE ]]
           then
-            echo "::notice::Temp file content:
-
-            $(cat $CHECKS_TEMP_FILE)
-            "
+            echo "::group::Temp file content"
+            cat $CHECKS_TEMP_FILE
+            echo "::endgroup::"
           else
             echo "checks-temp-file=" >> $GITHUB_OUTPUT;
           fi
+
+          sleep 10
+          CHECKS=$(gh pr checks | tee -a $CHECKS_TEMP_FILE) # Wait and refresh one more time to eliminate the cached pendings
+          gh pr checks # Let check outcome determine the step exit code
 
       - name: Report Checks
         if: ${{ always() && steps.check-pr.outputs.checks-temp-file != '' }}
@@ -554,10 +563,10 @@ jobs:
             grep -E 'https://' |
             tac |
             awk 'BEGIN { FS ="\t" } ; { if (! seen[$1]++) print }' |
-            sed -E 's/(.*)\t(pass)\t(.*)\t(.*)\t(.*)/| [**\1**](\4) | \2 | \3 |/;
-              s/(.*)\t(fail)\t(.*)\t(.*)\t(.*)/| [*\1*](\4) | \2 | \3 |/;
-              s/(.*)\t(skipping)\t(.*)\t(.*)\t(.*)/| [~\1~](\4) | \2 | |/;
-              s/(.*)\t(pending)\t(.*)\t(.*)\t(.*)/| [\1](\4) | \2 | |/;
+            sed -E 's/(.*)\t(pass)\t(.*)\t(.*)\t(.*)/| [**\1**](\4) | ✅ | \3 |/;
+              s/(.*)\t(fail)\t(.*)\t(.*)\t(.*)/| [*\1*](\4) | ⛔ | \3 |/;
+              s/(.*)\t(skipping)\t(.*)\t(.*)\t(.*)/| [~\1~](\4) | ⏭️ | |/;
+              s/(.*)\t(pending)\t(.*)\t(.*)\t(.*)/| [\1](\4) | 🔄 | |/;
               s/(.*)\t(.*)\t(.*)\t(.*)\t(.*)/| [\1](\4) | \2 | \3 |/')"
           rm -f $CHECKS_TEMP_FILE
 
