@@ -60,6 +60,7 @@ jobs:
     needs: [test_clean]
     if: |-
       ${{
+        always() &&
         !startsWith(github.head_ref, 'workflows/tests/') && ((
           github.actor == 'dependabot[bot]' && 
           github.event_name != 'push' &&
@@ -106,6 +107,7 @@ jobs:
     needs: [test_dirty_failure]
     if: |-
       ${{
+        always() &&
         !startsWith(github.head_ref, 'workflows/tests/') && ((
           github.actor == 'dependabot[bot]' && 
           github.event_name != 'push' &&
@@ -275,6 +277,7 @@ jobs:
     needs: [test_dirty_push]
     if: |-
       ${{
+        always() &&
         !startsWith(github.head_ref, 'workflows/tests/') && ((
           github.actor == 'dependabot[bot]' && 
           github.event_name != 'push' &&
@@ -444,6 +447,7 @@ jobs:
     needs: [test_dirty_push_as_app]
     if: |-
       ${{
+        always() &&
         !startsWith(github.head_ref, 'workflows/tests/') && ((
           github.actor == 'dependabot[bot]' && 
           github.event_name != 'push' &&
