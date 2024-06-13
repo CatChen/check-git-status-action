@@ -176,21 +176,22 @@ jobs:
         id: check-pr
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TEST_PR_NUMBER: ${{ steps.open-pr.outputs.test-pr-number }}
         run: |
           CHECKS_TEMP_FILE="$(mktemp)"
           echo "checks-temp-file=$CHECKS_TEMP_FILE" >> $GITHUB_OUTPUT;
 
           sleep 10
-          CHECKS=$(gh pr checks | tee -a $CHECKS_TEMP_FILE)
+          CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a $CHECKS_TEMP_FILE)
           PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
 
           while [ $PENDING -gt 0 -a -n "$PENDING" ]
           do
             echo "::group::Pending checks: $PENDING"
-            gh pr checks --watch --fail-fast | tee -a $CHECKS_TEMP_FILE
+            gh pr checks "$TEST_PR_NUMBER" --watch --fail-fast | tee -a $CHECKS_TEMP_FILE
 
             sleep 10
-            CHECKS=$(gh pr checks | tee -a $CHECKS_TEMP_FILE)
+            CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a $CHECKS_TEMP_FILE)
             PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
 
             echo "::endgroup::"
@@ -205,7 +206,7 @@ jobs:
             echo "checks-temp-file=" >> $GITHUB_OUTPUT;
           fi
 
-          gh pr checks # Let check outcome determine the step exit code
+          gh pr checks "$TEST_PR_NUMBER" # Let check outcome determine the step exit code
 
       - name: Report Checks
         if: ${{ always() && steps.check-pr.outputs.checks-temp-file != '' }}
@@ -343,21 +344,22 @@ jobs:
         id: check-pr
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TEST_PR_NUMBER: ${{ steps.open-pr.outputs.test-pr-number }}
         run: |
           CHECKS_TEMP_FILE="$(mktemp)"
           echo "checks-temp-file=$CHECKS_TEMP_FILE" >> $GITHUB_OUTPUT;
 
           sleep 10
-          CHECKS=$(gh pr checks | tee -a $CHECKS_TEMP_FILE)
+          CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a $CHECKS_TEMP_FILE)
           PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
 
           while [ $PENDING -gt 0 -a -n "$PENDING" ]
           do
             echo "::group::Pending checks: $PENDING"
-            gh pr checks --watch --fail-fast | tee -a $CHECKS_TEMP_FILE
+            gh pr checks "$TEST_PR_NUMBER" --watch --fail-fast | tee -a $CHECKS_TEMP_FILE
 
             sleep 10
-            CHECKS=$(gh pr checks | tee -a $CHECKS_TEMP_FILE)
+            CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a $CHECKS_TEMP_FILE)
             PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
 
             echo "::endgroup::"
@@ -372,7 +374,7 @@ jobs:
             echo "checks-temp-file=" >> $GITHUB_OUTPUT;
           fi
 
-          gh pr checks # Let check outcome determine the step exit code
+          gh pr checks "$TEST_PR_NUMBER" # Let check outcome determine the step exit code
 
       - name: Report Checks
         if: ${{ always() && steps.check-pr.outputs.checks-temp-file != '' }}
@@ -510,21 +512,22 @@ jobs:
         id: check-pr
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TEST_PR_NUMBER: ${{ steps.open-pr.outputs.test-pr-number }}
         run: |
           CHECKS_TEMP_FILE="$(mktemp)"
           echo "checks-temp-file=$CHECKS_TEMP_FILE" >> $GITHUB_OUTPUT;
 
           sleep 10
-          CHECKS=$(gh pr checks | tee -a $CHECKS_TEMP_FILE)
+          CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a $CHECKS_TEMP_FILE)
           PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
 
           while [ $PENDING -gt 0 -a -n "$PENDING" ]
           do
             echo "::group::Pending checks: $PENDING"
-            gh pr checks --watch --fail-fast | tee -a $CHECKS_TEMP_FILE
+            gh pr checks "$TEST_PR_NUMBER" --watch --fail-fast | tee -a $CHECKS_TEMP_FILE
 
             sleep 10
-            CHECKS=$(gh pr checks | tee -a $CHECKS_TEMP_FILE)
+            CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a $CHECKS_TEMP_FILE)
             PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
 
             echo "::endgroup::"
@@ -539,7 +542,7 @@ jobs:
             echo "checks-temp-file=" >> $GITHUB_OUTPUT;
           fi
 
-          gh pr checks # Let check outcome determine the step exit code
+          gh pr checks "$TEST_PR_NUMBER" # Let check outcome determine the step exit code
 
       - name: Report Checks
         if: ${{ always() && steps.check-pr.outputs.checks-temp-file != '' }}
