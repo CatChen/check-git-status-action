@@ -190,7 +190,7 @@ jobs:
           CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a $CHECKS_TEMP_FILE)
           PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
 
-          while [ $PENDING -gt 0 -a -n "$PENDING" ]
+          while [[ $PENDING -gt 0 && -n "$PENDING" ]]
           do
             echo "::group::Pending checks: $PENDING"
             gh pr checks "$TEST_PR_NUMBER" --watch --fail-fast | tee -a $CHECKS_TEMP_FILE
@@ -201,6 +201,9 @@ jobs:
 
             echo "::endgroup::"
           done
+
+          sleep 10
+          CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a $CHECKS_TEMP_FILE)
 
           if [[ -s $CHECKS_TEMP_FILE ]]
           then
@@ -358,7 +361,7 @@ jobs:
           CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a $CHECKS_TEMP_FILE)
           PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
 
-          while [ $PENDING -gt 0 -a -n "$PENDING" ]
+          while [[ $PENDING -gt 0 && -n "$PENDING" ]]
           do
             echo "::group::Pending checks: $PENDING"
             gh pr checks "$TEST_PR_NUMBER" --watch --fail-fast | tee -a $CHECKS_TEMP_FILE
@@ -369,6 +372,9 @@ jobs:
 
             echo "::endgroup::"
           done
+
+          sleep 10
+          CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a $CHECKS_TEMP_FILE)
 
           if [[ -s $CHECKS_TEMP_FILE ]]
           then
@@ -526,7 +532,7 @@ jobs:
           CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a $CHECKS_TEMP_FILE)
           PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
 
-          while [ $PENDING -gt 0 -a -n "$PENDING" ]
+          [while [ $PENDING -gt 0 && -n "$PENDING" ]]
           do
             echo "::group::Pending checks: $PENDING"
             gh pr checks "$TEST_PR_NUMBER" --watch --fail-fast | tee -a $CHECKS_TEMP_FILE
@@ -537,6 +543,9 @@ jobs:
 
             echo "::endgroup::"
           done
+
+          sleep 10
+          CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a $CHECKS_TEMP_FILE)
 
           if [[ -s $CHECKS_TEMP_FILE ]]
           then
