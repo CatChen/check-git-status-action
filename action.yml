@@ -74,82 +74,206 @@ runs:
         fi
         echo '::endgroup'
 
-    - id: gh-pr-review
-      name: gh pr review
-      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.request-changes-if-not-clean == 'true' && github.event_name == 'pull_request' }}
+    - id: get-tokens
+      name: Get tokens
+      if: |-
+        ${{
+          steps.git-status.outputs.status == 'dirty' &&
+          (inputs.request-changes-if-not-clean == 'true' || inputs.push-if-not-clean == 'true') && 
+          github.event_name == 'pull_request'
+        }}
       shell: bash
       env:
-        GH_TOKEN: ${{ inputs.request-changes-token }}
+        DEFAULT_TOKEN: ${{ github.token }}
         LEGACY_TOKEN: ${{ inputs.github-token }}
+        REQUEST_CHANGES_TOKEN: ${{ inputs.request-changes-token }}
+        PUSH_TOKEN: ${{ inputs.push-token }}
+      run: |
+        echo '::group::Get tokens'
+        if [[ "$DEFAULT_TOKEN" = "$REQUEST_CHANGES_TOKEN" ]] && [[ "$DEFAULT_TOKEN" != "$LEGACY_TOKEN" ]]
+        then
+          # If github-token is assigned and request-changes-token is not assign (thus having the default token)
+          # assign github-token to request-changes-token.
+          echo "::warning::Using github-token as request-changes-token."
+          echo "::warning::Please set request-changes-token and unset github-token."
+          REQUEST_CHANGES_TOKEN="$LEGACY_TOKEN"
+        fi
+        echo "request-changes-token=$REQUEST_CHANGES_TOKEN" >> $GITHUB_OUTPUT
+
+        if [[ "$DEFAULT_TOKEN" = "$PUSH_TOKEN" ]] && [[ "$DEFAULT_TOKEN" != "$LEGACY_TOKEN" ]]
+        then
+          # If github-token is assigned and push-token is not assign (thus having the default token)
+          # assign github-token to push-token.
+          echo "::warning::Using github-token as push-token."
+          echo "::warning::Please set push-token and unset github-token."
+          PUSH_TOKEN="$LEGACY_TOKEN"
+        fi
+        echo "push-token=$PUSH_TOKEN" >> $GITHUB_OUTPUT
+        echo '::endgroup'
+
+    - id: gh-pr-review
+      name: gh pr review
+      if: |-
+        ${{
+          steps.git-status.outputs.status == 'dirty' && 
+          inputs.request-changes-if-not-clean == 'true' && 
+          github.event_name == 'pull_request'
+        }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ steps.get-tokens.outputs.request-changes-token }}
         REQUEST_CHANGES_COMMENT: ${{ inputs.request-changes-comment }}
       run: |
         echo '::group::gh pr review'
-        if [[ "$GITHUB_TOKEN" = "$GH_TOKEN" ]] && [[ "$GITHUB_TOKEN" != "$LEGACY_TOKEN" ]]
-        then
-          GH_TOKEN="$LEGACY_TOKEN"
-        fi
         gh pr review -rb "$REQUEST_CHANGES_COMMENT"
         echo '::endgroup::'
 
-    - id: git-config
-      name: git config
-      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' && github.event_name == 'pull_request' }}
+    - id: get-login
+      name: Get login
+      if: |-
+        ${{
+          steps.git-status.outputs.status == 'dirty' && 
+          inputs.push-if-not-clean == 'true' && 
+          github.event_name == 'pull_request'
+        }}
       shell: bash
       env:
-        GITHUB_TOKEN: ${{ github.token }}
-        GH_TOKEN: ${{ inputs.push-token }}
-        LEGACY_TOKEN: ${{ inputs.github-token }}
+        GH_TOKEN: ${{ steps.get-tokens.outputs.push-token }}
+        DEFAULT_TOKEN: ${{ github.token }}
+      run: |
+        echo '::group::Get login'
+        if [[ "$DEFAULT_TOKEN" != "$GH_TOKEN" ]]
+        then
+          # Use the user or the app behind the push-token as the commit author if it's assigned.
+          USER_LOGIN=$(gh api graphql \
+            -H "X-Github-Next-Global-ID: 1" \
+            -f query="query { viewer { login } }" \
+            -q ".data.viewer.login")
+          echo "::notice::Login behind push-token is $USER_LOGIN"
+        else
+          # Use GitHub Actions Bot as the commit author if the push-token isn't assigned.
+          # USER_NAME="GitHub Action"
+          # USER_EMAIL="41898282+github-actions[bot]@users.noreply.github.com"
+          USER_LOGIN="github-actions[bot]"
+          echo "::notice::Default login used for push is $USER_LOGIN"
+        fi
+        echo "user-login=$USER_LOGIN" >> $GITHUB_OUTPUT
+        echo '::endgroup'
+
+    - id: get-git-user
+      name: Get git user
+      if: |-
+        ${{
+          steps.git-status.outputs.status == 'dirty' && 
+          inputs.push-if-not-clean == 'true' && 
+          github.event_name == 'pull_request'
+        }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ steps.get-tokens.outputs.push-token }}
+        USER_LOGIN: ${{ steps.get-login.outputs.user-login }}
+      run: |
+        echo '::group::Get git user'
+        USER=$(gh api \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          "/users/$USER_LOGIN" \
+          -q "pick(.login, .id, .name, .email, .type)")
+        USER_ID=$(echo "$USER" | jq -r ".id")
+        echo "::notice::$USER_LOGIN has a GraphQL node id $USER_ID"
+        USER_TYPE=$(echo "$USER" | jq -r ".type")
+        echo "::notice::$USER_LOGIN is a $USER_TYPE"
+
+        if [[ "$USER_TYPE" = "User" ]]
+        then
+          USER_NAME=$(echo "$USER" | jq -r ".name")
+          echo "::notice::$USER_LOGIN is named $USER_NAME"
+          USER_EMAIL=$(echo "$USER" | jq -r ".email")
+          echo "::notice::$USER_LOGIN uses the email $USER_EMAIL"
+        elif [[ "$USER_TYPE" = "Bot" ]]
+        then
+          BOT_LOGIN=$(gh api graphql \
+            -H "X-Github-Next-Global-ID: 1" \
+            -f query="query { node(id: "'"'"$USER_ID"'"'") { login } }" \
+            -q ".data.node.login")
+          echo "::notice::$USER_TYPE login is $BOT_LOGIN"
+          BOT=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "/apps/$BOT_LOGIN" \
+            -q "pick(.name, .email, .id)")
+          USER_NAME=$(echo "$BOT" | jq -r ".name")
+          echo "::notice::$BOT_LOGIN is named $USER_NAME"
+          USER_EMAIL=$(echo "$BOT" | jq -r ".email")
+          if [[ -z "$USER_EMAIL" ]]
+          then
+            USER_EMAIL="$USER_ID+$USER_LOGIN@users.noreply.github.com"
+          fi
+          echo "::notice::$BOT_LOGIN uses the email $USER_EMAIL"
+        else
+          # If nothing works fall back to last commit author.
+          USER_NAME=$(git log -n 1 --pretty=format:%an)
+          echo "::notice::Fallback user name is $USER_NAME"
+          USER_EMAIL=$(git log -n 1 --pretty=format:%ae)
+          echo "::notice::Fallback user email is $USER_EMAIL"
+        fi
+
+        echo "user-name=$USER_NAME" >> $GITHUB_OUTPUT
+        echo "user-email=$USER_EMAIL" >> $GITHUB_OUTPUT
+        echo '::endgroup'
+
+    - id: git-config
+      name: git config
+      if: |-
+        ${{
+          steps.git-status.outputs.status == 'dirty' &&
+          inputs.push-if-not-clean == 'true' &&
+          github.event_name == 'pull_request'
+        }}
+      shell: bash
+      env:
+        USER_NAME: ${{ steps.get-git-user.outputs.user-name }}
+        USER_EMAIL: ${{ steps.get-git-user.outputs.user-email }}
       run: |
         echo '::group::git config'
-        if [[ "$GITHUB_TOKEN" = "$GH_TOKEN" ]] && [[ "$GITHUB_TOKEN" != "$LEGACY_TOKEN" ]]
-        then
-          GH_TOKEN="$LEGACY_TOKEN"
-        fi
-        if [[ "$GITHUB_TOKEN" != "$GH_TOKEN" ]]
-        then
-          USERNAME=$(git log -n 1 --pretty=format:%an)
-          USEREMAIL=$(git log -n 1 --pretty=format:%ae)
-        else
-          USERNAME="GitHub Action"
-          USEREMAIL="41898282+github-actions[bot]@users.noreply.github.com"
-        fi
-        echo "::notice::Set git user name: $USERNAME"
-        echo "::notice::Set git user email: $USEREMAIL"
-        git config --global user.name "$USERNAME"
-        git config --global user.email "$USEREMAIL"
+        git config --global user.name "$USER_NAME"
+        echo "::notice::Set git user name: $USER_NAME"
+        git config --global user.email "$USER_EMAIL"
+        echo "::notice::Set git user email: $USER_EMAIL"
         echo '::groupend::'
 
     - id: gh-auth
       name: gh auth
-      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' }}
+      if: |-
+        ${{
+          steps.git-status.outputs.status == 'dirty' && 
+          inputs.push-if-not-clean == 'true'
+        }}
       shell: bash
       env:
         DEFAULT_TOKEN: ${{ github.token }}
-        GH_TOKEN: ${{ inputs.push-token }}
-        LEGACY_TOKEN: ${{ inputs.github-token }}
+        GH_TOKEN: ${{ steps.get-tokens.outputs.push-token }}
+        USER_LOGIN: ${{ steps.get-login.outputs.user-login }}
       run: |
         echo '::group::gh auth'
-        if [[ "$DEFAULT_TOKEN" = "$GH_TOKEN" ]] && [[ "$DEFAULT_TOKEN" != "$LEGACY_TOKEN" ]]
-        then
-          # If github-token is assigned and push-token is not assign (thus having the default token)
-          # assign github-token to push-token.
-          GH_TOKEN="$LEGACY_TOKEN" 
-        fi
         if [[ "$DEFAULT_TOKEN" != "$GH_TOKEN" ]]
         then
           gh auth status
           gh auth setup-git
           git config --list
-          OVERRIDE_LOGIN=$(gh api graphql -f query='query UserCurrent{viewer{login}}' -q '.data.viewer.login')
-          OVERRIDE_REMOTE=$(git remote get-url origin --push | sed 's/^https:\/\//https:\/\/'"$OVERRIDE_LOGIN:$GH_TOKEN"'@/')
-          echo "login=$OVERRIDE_LOGIN" >> $GITHUB_OUTPUT
-          echo "remote=$OVERRIDE_REMOTE" >> $GITHUB_OUTPUT
+          GIT_REMOTE=$(git remote get-url origin --push | sed 's/^https:\/\//https:\/\/'"$USER_LOGIN:$GH_TOKEN"'@/')
+          echo "get-remote=$GIT_REMOTE" >> $GITHUB_OUTPUT
         fi
         echo '::endgroup::'
 
     - id: git-commit
       name: git commit
-      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' && github.event_name == 'pull_request' }}
+      if: |-
+        ${{
+          steps.git-status.outputs.status == 'dirty' &&
+          inputs.push-if-not-clean == 'true' &&
+          github.event_name == 'pull_request'
+        }}
       shell: bash
       env:
         COMMIT_MESSAGE: ${{ inputs.commit-message }}
@@ -163,7 +287,12 @@ runs:
 
     - id: git-fetch
       name: git fetch
-      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' && github.event_name == 'pull_request' }}
+      if: |-
+        ${{
+          steps.git-status.outputs.status == 'dirty' &&
+          inputs.push-if-not-clean == 'true' &&
+          github.event_name == 'pull_request'
+        }}
       shell: bash
       run: |
         echo '::group::git fetch'
@@ -172,26 +301,35 @@ runs:
 
     - id: git-push
       name: git push
-      if: ${{ steps.git-status.outputs.status == 'dirty' && inputs.push-if-not-clean == 'true' && github.event_name == 'pull_request' }}
+      if: |-
+        ${{
+          steps.git-status.outputs.status == 'dirty' &&
+          inputs.push-if-not-clean == 'true' &&
+          github.event_name == 'pull_request'
+        }}
       shell: bash
       env:
         BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
-        OVERRIDE_REMOTE: ${{ steps.gh-auth.outputs.remote }}
+        GIT_REMOTE: ${{ steps.gh-auth.outputs.git-remote }}
       run: |
         echo '::group::git push'
-        if [[ "$OVERRIDE_REMOTE" != "" ]]
+        if [[ -n "$GIT_REMOTE"  ]]
         then
-          echo "::notice::git push -f --set-upstream $OVERRIDE_REMOTE HEAD:refs/heads/$BRANCH_NAME"
-          git push -f --set-upstream "$OVERRIDE_REMOTE" "HEAD:refs/heads/$BRANCH_NAME"
+          echo "::notice::Push to $GIT_REMOTE HEAD:refs/heads/$BRANCH_NAME"
+          git push -f --set-upstream "$GIT_REMOTE" "HEAD:refs/heads/$BRANCH_NAME"
         else
-          echo "::notice::git push -f --set-upstream origin HEAD:refs/heads/$BRANCH_NAME"
+          echo "::notice::Push to origin HEAD:refs/heads/$BRANCH_NAME"
           git push -f --set-upstream origin "HEAD:refs/heads/$BRANCH_NAME"
         fi
         echo '::endgroup::'
 
     - id: exit-1
       name: exit 1
-      if: ${{ steps.git-status.outputs.status == 'dirty' && (inputs.fail-if-not-clean == 'true') }}
+      if: |-
+        ${{
+          steps.git-status.outputs.status == 'dirty' &&
+          inputs.fail-if-not-clean == 'true'
+        }}
       shell: bash
       run: exit 1
 branding:
