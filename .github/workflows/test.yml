@@ -202,6 +202,9 @@ jobs:
             echo "::endgroup::"
           done
 
+          sleep 10
+          CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a $CHECKS_TEMP_FILE)
+
           if [[ -s $CHECKS_TEMP_FILE ]]
           then
             echo "::group::Temp file content"
@@ -370,6 +373,9 @@ jobs:
             echo "::endgroup::"
           done
 
+          sleep 10
+          CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a $CHECKS_TEMP_FILE)
+
           if [[ -s $CHECKS_TEMP_FILE ]]
           then
             echo "::group::Temp file content"
@@ -537,6 +543,9 @@ jobs:
 
             echo "::endgroup::"
           done
+
+          sleep 10
+          CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a $CHECKS_TEMP_FILE)
 
           if [[ -s $CHECKS_TEMP_FILE ]]
           then
