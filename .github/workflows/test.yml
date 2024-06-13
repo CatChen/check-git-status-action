@@ -83,14 +83,19 @@ jobs:
           touch `git rev-parse --verify HEAD`
 
       - uses: ./
+        with:
+          fail-if-not-clean: true
+          push-if-not-clean: false
+          request-changes-if-not-clean: false
         id: test-action
         continue-on-error: true
 
       - name: Verify outputs
         env:
           TEST_ACTION_OUTPUT: ${{ steps.test-action.outputs.status }}
+          TEST_ACTION_OUTCOME: ${{ steps.test-action.outcome }}
         run: |
-          if [[ $TEST_ACTION_OUTPUT != "dirty" ]]
+          if [[ $TEST_ACTION_OUTPUT != "dirty" -o $TEST_ACTION_OUTCOME != "failure" ]]
           then
             exit 1;
           fi
