@@ -176,7 +176,7 @@ jobs:
           fi
 
   verify_dirty_request_changes_in_pull_request:
-    name: Verify Dirty Push in Pull Request
+    name: Verify Dirty Request Changes in Pull Request
     if: ${{ startsWith(github.head_ref, 'workflows/tests/request-changes/') }}
     needs: test_dirty_request_changes_in_pull_request
     runs-on: ubuntu-latest
