@@ -31,7 +31,7 @@ on:
       diff-targets:
         description: 'Diff Targets'
         required: false
-        default: 'action.yml'
+        default: '{action.yml,README.md}'
         type: string
       dry-run:
         description: 'Dry run'
