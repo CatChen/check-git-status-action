@@ -50,6 +50,12 @@ jobs:
     concurrency: release
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/create-github-app-token@v1
+        id: get-github-app-token
+        with:
+          app-id: ${{ secrets.ACCEPT_TO_SHIP_BOT_APP_ID }}
+          private-key: ${{ secrets.ACCEPT_TO_SHIP_BOT_APP_PRIVATE_KEY }}
+
       - uses: actions/checkout@v4
         with:
           ref: 'main'
@@ -62,5 +68,6 @@ jobs:
           prerelease: ${{ inputs.prerelease || false }}
           update-shorthand-release: true
           dry-run: ${{ inputs.dry-run || false }}
-          skip-if-no-diff: ${{ inputs.skip-if-no-diff || true }}
+          skip-if-no-diff: ${{ inputs.skip-if-no-diff || github.event_name != 'workflow_dispatch' }}
           diff-targets: ${{ inputs.diff-targets || '{action.yml,README.md}' }}
+          github-token: ${{ steps.get-github-app-token.outputs.token }}
