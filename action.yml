@@ -299,7 +299,11 @@ runs:
       shell: bash
       run: |
         echo '::group::git fetch'
-        git fetch --unshallow origin
+        IS_SHALLOW=$(git rev-parse --is-shallow-repository)
+        if [[ "$IS_SHALLOW" == "true" ]]
+        then
+          git fetch --unshallow origin
+        fi
         echo '::endgroup::'
 
     - id: git-push
