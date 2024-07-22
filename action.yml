@@ -264,7 +264,7 @@ runs:
           gh auth status
           gh auth setup-git
           git config --list
-          GIT_REMOTE=$(git remote get-url origin --push | sed 's/^https:\/\//https:\/\/'"$USER_LOGIN:$GH_TOKEN"'@/')
+          GIT_REMOTE=$(git remote get-url origin | sed 's/^https:\/\//https:\/\/'"$USER_LOGIN:$GH_TOKEN"'@/')
           echo "git-remote=$GIT_REMOTE" >> $GITHUB_OUTPUT
         fi
         echo '::endgroup::'
