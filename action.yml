@@ -208,14 +208,10 @@ runs:
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "/apps/$BOT_LOGIN" \
-            -q "pick(.name, .email, .id)")
+            -q "pick(.name, .id)")
           USER_NAME=$(echo "$BOT" | jq -r ".name")
           echo "::notice::$BOT_LOGIN is named $USER_NAME"
-          USER_EMAIL=$(echo "$BOT" | jq -r ".email")
-          if [[ "$USER_EMAIL" = "null" ]]
-          then
-            USER_EMAIL="$USER_ID+$USER_LOGIN@users.noreply.github.com"
-          fi
+          USER_EMAIL="$USER_ID+$USER_LOGIN@users.noreply.github.com"
           echo "::notice::$BOT_LOGIN uses the email $USER_EMAIL"
         else
           # If nothing works fall back to last commit author.
