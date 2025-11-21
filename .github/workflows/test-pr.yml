@@ -16,7 +16,7 @@ jobs:
       pushed-commit-sha: ${{ steps.test-action.outputs.sha }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Make dirty
         id: make-dirty
@@ -51,7 +51,7 @@ jobs:
     needs: test_dirty_push_in_pull_request
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
@@ -86,7 +86,7 @@ jobs:
           app-id: ${{ secrets.CHECK_GIT_STATUS_BOT_APP_ID }}
           private-key: ${{ secrets.CHECK_GIT_STATUS_BOT_APP_PRIVATE_KEY }}
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           token: ${{ steps.get-github-app-token.outputs.token }}
 
@@ -124,7 +124,7 @@ jobs:
     needs: test_dirty_push_as_app_in_pull_request
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
@@ -150,7 +150,7 @@ jobs:
     if: ${{ startsWith(github.head_ref, 'workflows/tests/request-changes/') }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.head_ref }}
 
@@ -181,7 +181,7 @@ jobs:
     needs: test_dirty_request_changes_in_pull_request
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.head_ref }}
 
