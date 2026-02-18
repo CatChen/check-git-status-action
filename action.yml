@@ -48,11 +48,39 @@ outputs:
 runs:
   using: 'composite'
   steps:
+    - id: sanitize-targets
+      name: Sanitize targets
+      shell: bash
+      env:
+        TARGETS_INPUT: ${{ inputs.targets }}
+      run: |
+        TARGET_PATHS=()
+        while IFS= read -r TARGET || [[ -n "$TARGET" ]]
+        do
+          TARGET="${TARGET#"${TARGET%%[![:space:]]*}"}"
+          TARGET="${TARGET%"${TARGET##*[![:space:]]}"}"
+          if [[ -n "$TARGET" ]]
+          then
+            TARGET_PATHS+=("$TARGET")
+          fi
+        done <<< "${TARGETS_INPUT//$'\r'/}"
+
+        if [[ ${#TARGET_PATHS[@]} -eq 0 ]]
+        then
+          TARGET_PATHS=(".")
+        fi
+
+        {
+          echo "targets<<EOF"
+          printf '%s\n' "${TARGET_PATHS[@]}"
+          echo "EOF"
+        } >> "$GITHUB_OUTPUT"
+
     - id: git-status
       name: git status
       shell: bash
       env:
-        TARGETS: ${{ inputs.targets }}
+        TARGETS: ${{ steps.sanitize-targets.outputs.targets }}
       run: |
         echo '::group::git status'
         if git rev-parse --verify HEAD >/dev/null 2>&1
@@ -63,21 +91,7 @@ runs:
           against=$(git hash-object -t tree /dev/null)
         fi
 
-        TARGET_PATHS=()
-        while IFS= read -r TARGET || [[ -n "$TARGET" ]]
-        do
-          TARGET="${TARGET#"${TARGET%%[![:space:]]*}"}"
-          TARGET="${TARGET%"${TARGET##*[![:space:]]}"}"
-          if [[ -n "$TARGET" ]]
-          then
-            TARGET_PATHS+=("$TARGET")
-          fi
-        done <<< "${TARGETS//$'\r'/}"
-
-        if [[ ${#TARGET_PATHS[@]} -eq 0 ]]
-        then
-          TARGET_PATHS=(".")
-        fi
+        mapfile -t TARGET_PATHS < <(printf '%s' "$TARGETS")
 
         for TARGET_PATH in "${TARGET_PATHS[@]}"
         do
@@ -306,25 +320,10 @@ runs:
       shell: bash
       env:
         COMMIT_MESSAGE: ${{ inputs.commit-message }}
-        TARGETS: ${{ inputs.targets }}
+        TARGETS: ${{ steps.sanitize-targets.outputs.targets }}
       run: |
         echo '::group::git commit'
-
-        TARGET_PATHS=()
-        while IFS= read -r TARGET || [[ -n "$TARGET" ]]
-        do
-          TARGET="${TARGET#"${TARGET%%[![:space:]]*}"}"
-          TARGET="${TARGET%"${TARGET##*[![:space:]]}"}"
-          if [[ -n "$TARGET" ]]
-          then
-            TARGET_PATHS+=("$TARGET")
-          fi
-        done <<< "${TARGETS//$'\r'/}"
-
-        if [[ ${#TARGET_PATHS[@]} -eq 0 ]]
-        then
-          TARGET_PATHS=(".")
-        fi
+        mapfile -t TARGET_PATHS < <(printf '%s' "$TARGETS")
 
         git add -- "${TARGET_PATHS[@]}"
         git commit -m "$COMMIT_MESSAGE"
