@@ -70,6 +70,11 @@ runs:
           TARGET_PATHS=(".")
         fi
 
+        for TARGET_PATH in "${TARGET_PATHS[@]}"
+        do
+          echo "::notice::Target: $TARGET_PATH"
+        done
+
         {
           echo "targets<<EOF"
           printf '%s\n' "${TARGET_PATHS[@]}"
@@ -92,11 +97,6 @@ runs:
         fi
 
         mapfile -t TARGET_PATHS < <(printf '%s' "$TARGETS")
-
-        for TARGET_PATH in "${TARGET_PATHS[@]}"
-        do
-          echo "::notice::Target: $TARGET_PATH"
-        done
 
         git add -N -- "${TARGET_PATHS[@]}"
         mapfile -t CHANGED_FILES < <(git diff --name-only "$against" -- "${TARGET_PATHS[@]}")
