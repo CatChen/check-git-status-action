@@ -90,7 +90,7 @@ targets: |
   src/**/*.ts
 ```
 
-Use newline-separated targets when matching multiple files or directories. Brace expansion syntax like `"{src,lib}"` is not supported and will be treated as a literal pathspec.
+Use newline-separated targets when matching multiple files or directories. This action does not perform shell expansion on targets (so brace patterns like `"{src,lib}"` are passed to git as literal pathspecs), but each target can still use git pathspec/glob syntax such as `src/**/*.ts`.
 
 ### `github-token` (deprecated)
 

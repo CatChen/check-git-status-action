@@ -54,6 +54,7 @@ runs:
       env:
         TARGETS_INPUT: ${{ inputs.targets }}
       run: |
+        echo '::group::sanitize targets'
         TARGET_PATHS=()
         while IFS= read -r TARGET || [[ -n "$TARGET" ]]
         do
@@ -80,6 +81,7 @@ runs:
           printf '%s\n' "${TARGET_PATHS[@]}"
           echo "EOF"
         } >> "$GITHUB_OUTPUT"
+        echo '::endgroup::'
 
     - id: git-status
       name: git status
