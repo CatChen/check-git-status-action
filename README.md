@@ -90,7 +90,7 @@ targets: |
   src/**/*.ts
 ```
 
-Simple brace lists are also supported for compatibility (for example, `"{src,lib}"`), but newline-separated targets are preferred because they are explicit and safer to parse.
+Use newline-separated targets when matching multiple files or directories. Brace expansion syntax like `"{src,lib}"` is not supported and will be treated as a literal pathspec.
 
 ### `github-token` (deprecated)
 

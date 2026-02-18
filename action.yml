@@ -63,13 +63,6 @@ runs:
           against=$(git hash-object -t tree /dev/null)
         fi
 
-        RAW_TARGETS="${TARGETS//$'\r'/}"
-        if [[ "$RAW_TARGETS" =~ ^\{[^{}]+\}$ ]]
-        then
-          RAW_TARGETS="${RAW_TARGETS:1:-1}"
-          RAW_TARGETS="${RAW_TARGETS//,/$'\n'}"
-        fi
-
         TARGET_PATHS=()
         while IFS= read -r TARGET || [[ -n "$TARGET" ]]
         do
@@ -79,7 +72,7 @@ runs:
           then
             TARGET_PATHS+=("$TARGET")
           fi
-        done <<< "$RAW_TARGETS"
+        done <<< "${TARGETS//$'\r'/}"
 
         if [[ ${#TARGET_PATHS[@]} -eq 0 ]]
         then
@@ -317,13 +310,6 @@ runs:
       run: |
         echo '::group::git commit'
 
-        RAW_TARGETS="${TARGETS//$'\r'/}"
-        if [[ "$RAW_TARGETS" =~ ^\{[^{}]+\}$ ]]
-        then
-          RAW_TARGETS="${RAW_TARGETS:1:-1}"
-          RAW_TARGETS="${RAW_TARGETS//,/$'\n'}"
-        fi
-
         TARGET_PATHS=()
         while IFS= read -r TARGET || [[ -n "$TARGET" ]]
         do
@@ -333,7 +319,7 @@ runs:
           then
             TARGET_PATHS+=("$TARGET")
           fi
-        done <<< "$RAW_TARGETS"
+        done <<< "${TARGETS//$'\r'/}"
 
         if [[ ${#TARGET_PATHS[@]} -eq 0 ]]
         then
