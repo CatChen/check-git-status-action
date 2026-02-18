@@ -79,7 +79,18 @@ When `request-changes-if-not-clean` is set to `true` and `git status` is not cle
 
 ### `targets`
 
-The default value is `"."`. For example, it could be `"src"` or `"src/**/*.ts"` for a typical TypeScript project with source code files in the `src` directory. Use glob pattern to match multiple directories if necessary, for example `"{src,lib}"` instead of `"src lib"` or `"{src, lib}"` to match both the `src` directory and the `lib` directory.
+The default value is `"."`. For example, it could be `"src"` or `"src/**/*.ts"` for a typical TypeScript project with source code files in the `src` directory.
+
+For multiple targets, use one target per line:
+
+```yaml
+targets: |
+  schema.graphql
+  src/__graphql__
+  src/**/*.ts
+```
+
+Use newline-separated targets when matching multiple files or directories. Brace expansion syntax like `"{src,lib}"` is not supported and will be treated as a literal pathspec.
 
 ### `github-token` (deprecated)
 

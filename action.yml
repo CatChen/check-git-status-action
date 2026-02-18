@@ -35,7 +35,7 @@ inputs:
     required: false
     default: 'Changes detected by Check Git Status Action'
   targets:
-    description: 'Files, directories, and/or globs to check and commit.'
+    description: 'Files, directories, and/or globs to check and commit. Use a newline-separated list for multiple targets.'
     required: false
     default: '.'
 outputs:
@@ -48,11 +48,44 @@ outputs:
 runs:
   using: 'composite'
   steps:
+    - id: sanitize-targets
+      name: Sanitize targets
+      shell: bash
+      env:
+        TARGETS_INPUT: ${{ inputs.targets }}
+      run: |
+        TARGET_PATHS=()
+        while IFS= read -r TARGET || [[ -n "$TARGET" ]]
+        do
+          TARGET="${TARGET#"${TARGET%%[![:space:]]*}"}"
+          TARGET="${TARGET%"${TARGET##*[![:space:]]}"}"
+          if [[ -n "$TARGET" ]]
+          then
+            TARGET_PATHS+=("$TARGET")
+          fi
+        done <<< "${TARGETS_INPUT//$'\r'/}"
+
+        if [[ ${#TARGET_PATHS[@]} -eq 0 ]]
+        then
+          TARGET_PATHS=(".")
+        fi
+
+        for TARGET_PATH in "${TARGET_PATHS[@]}"
+        do
+          echo "::notice::Target: $TARGET_PATH"
+        done
+
+        {
+          echo "targets<<EOF"
+          printf '%s\n' "${TARGET_PATHS[@]}"
+          echo "EOF"
+        } >> "$GITHUB_OUTPUT"
+
     - id: git-status
       name: git status
       shell: bash
       env:
-        TARGETS: ${{ inputs.targets }}
+        TARGETS: ${{ steps.sanitize-targets.outputs.targets }}
       run: |
         echo '::group::git status'
         if git rev-parse --verify HEAD >/dev/null 2>&1
@@ -62,12 +95,19 @@ runs:
           # Initial commit: diff against an empty tree object
           against=$(git hash-object -t tree /dev/null)
         fi
-        git add -N "$TARGETS"
-        if test $(git diff --name-only $against | wc -l) != 0
+
+        mapfile -t TARGET_PATHS < <(printf '%s' "$TARGETS")
+
+        git add -N -- "${TARGET_PATHS[@]}"
+        mapfile -t CHANGED_FILES < <(git diff --name-only "$against" -- "${TARGET_PATHS[@]}")
+        if [[ ${#CHANGED_FILES[@]} -gt 0 ]]
         then
           echo "status=dirty" >> $GITHUB_OUTPUT
           echo "::notice::Git status is dirty"
-          git diff --name-only $against | xargs -n1 -I {} echo "::notice file={}::  File: {}"
+          for CHANGED_FILE in "${CHANGED_FILES[@]}"
+          do
+            echo "::notice file=$CHANGED_FILE::  File: $CHANGED_FILE"
+          done
         else
           echo "status=clean" >> $GITHUB_OUTPUT
           echo "::notice::Git status is clean"
@@ -280,10 +320,12 @@ runs:
       shell: bash
       env:
         COMMIT_MESSAGE: ${{ inputs.commit-message }}
-        TARGETS: ${{ inputs.targets }}
+        TARGETS: ${{ steps.sanitize-targets.outputs.targets }}
       run: |
         echo '::group::git commit'
-        git add "$TARGETS"
+        mapfile -t TARGET_PATHS < <(printf '%s' "$TARGETS")
+
+        git add -- "${TARGET_PATHS[@]}"
         git commit -m "$COMMIT_MESSAGE"
         echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
         echo '::groupend::'
