@@ -18,7 +18,7 @@ jobs:
     if: |-
       ${{
         !startsWith(github.head_ref, 'workflows/tests/') && ((
-          github.actor == 'dependabot[bot]' && 
+          github.actor == 'dependabot[bot]' &&
           github.event_name != 'push' &&
           github.event_name != 'pull_request'
         ) || (
