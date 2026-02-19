@@ -48,12 +48,12 @@ jobs:
             exit 1;
           fi
 
-  test_targets_multiline:
-    name: Test Multiline Targets
+  test_targets_multiline_clean:
+    name: Test Multiline Targets Clean
     if: |-
       ${{
         !startsWith(github.head_ref, 'workflows/tests/') && ((
-          github.actor == 'dependabot[bot]' && 
+          github.actor == 'dependabot[bot]' &&
           github.event_name != 'push' &&
           github.event_name != 'pull_request'
         ) || (
@@ -77,7 +77,7 @@ jobs:
           touch .targets-test/untargeted
 
       - uses: ./
-        id: test-action-clean
+        id: test-action
         with:
           fail-if-not-clean: false
           push-if-not-clean: false
@@ -86,21 +86,44 @@ jobs:
             action.yml
             README.md
 
-      - name: Verify outputs for non-target change
+      - name: Verify outputs
         env:
-          TEST_ACTION_OUTPUT: ${{ steps.test-action-clean.outputs.status }}
+          TEST_ACTION_OUTPUT: ${{ steps.test-action.outputs.status }}
         run: |
           if [[ $TEST_ACTION_OUTPUT != "clean" ]]
           then
             exit 1;
           fi
 
+  test_targets_multiline_dirty:
+    name: Test Multiline Targets Dirty
+    if: |-
+      ${{
+        !startsWith(github.head_ref, 'workflows/tests/') && ((
+          github.actor == 'dependabot[bot]' &&
+          github.event_name != 'push' &&
+          github.event_name != 'pull_request'
+        ) || (
+          github.actor != 'dependabot[bot]' &&
+          github.event_name != 'workflow_run'
+        ))
+      }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        if: ${{ github.event_name != 'workflow_run' }}
+
+      - uses: actions/checkout@v6
+        if: ${{ github.event_name == 'workflow_run' }}
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+
       - name: Make target dirty
         run: |
           echo "dirty" >> README.md
 
       - uses: ./
-        id: test-action-dirty
+        id: test-action
         with:
           fail-if-not-clean: false
           push-if-not-clean: false
@@ -109,9 +132,9 @@ jobs:
             action.yml
             README.md
 
-      - name: Verify outputs for target change
+      - name: Verify outputs
         env:
-          TEST_ACTION_OUTPUT: ${{ steps.test-action-dirty.outputs.status }}
+          TEST_ACTION_OUTPUT: ${{ steps.test-action.outputs.status }}
         run: |
           if [[ $TEST_ACTION_OUTPUT != "dirty" ]]
           then
