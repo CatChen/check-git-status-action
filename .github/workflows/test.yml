@@ -268,36 +268,57 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TEST_PR_NUMBER: ${{ steps.open-pr.outputs.test-pr-number }}
+          EXPECTED_CHECK_NAME: Verify Dirty Push in Pull Request
         run: |
           CHECKS_TEMP_FILE="$(mktemp)"
           echo "checks-temp-file=$CHECKS_TEMP_FILE" >> $GITHUB_OUTPUT;
 
-          sleep 10
-          CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a $CHECKS_TEMP_FILE)
-          PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
+          WAIT_INTERVAL_SECONDS=10
+          WAIT_ATTEMPTS=36
+          EXPECTED_CHECK_FOUND="false"
 
-          while [[ $PENDING -gt 0 && -n "$PENDING" ]]
+          for ((ATTEMPT=1; ATTEMPT<=WAIT_ATTEMPTS; ATTEMPT++))
           do
-            echo "::group::Pending checks: $PENDING"
-            gh pr checks "$TEST_PR_NUMBER" --watch --fail-fast | tee -a $CHECKS_TEMP_FILE
+            CHECKS_JSON=$(gh pr checks "$TEST_PR_NUMBER" --json name,bucket,state,link 2>/dev/null || true)
+            EXPECTED_CHECK_COUNT=$(jq --arg expected "$EXPECTED_CHECK_NAME" '[.[] | select(.name | contains($expected))] | length' <<< "$CHECKS_JSON" 2>/dev/null || echo 0)
 
-            sleep 10
-            CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a $CHECKS_TEMP_FILE)
-            PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
+            if [[ "$EXPECTED_CHECK_COUNT" -gt 0 ]]
+            then
+              EXPECTED_CHECK_FOUND="true"
+              echo "::notice::Detected expected check '$EXPECTED_CHECK_NAME' for PR #$TEST_PR_NUMBER."
+              break
+            fi
 
-            echo "::endgroup::"
+            echo "::notice::Waiting for expected check '$EXPECTED_CHECK_NAME' on PR #$TEST_PR_NUMBER ($ATTEMPT/$WAIT_ATTEMPTS)."
+            sleep "$WAIT_INTERVAL_SECONDS"
           done
 
-          if [[ -s $CHECKS_TEMP_FILE ]]
+          if [[ "$EXPECTED_CHECK_FOUND" != "true" ]]
+          then
+            echo "::error::Timed out waiting for expected check '$EXPECTED_CHECK_NAME' on PR #$TEST_PR_NUMBER."
+            gh pr checks "$TEST_PR_NUMBER" | tee -a "$CHECKS_TEMP_FILE" || true
+            exit 1
+          fi
+
+          gh pr checks "$TEST_PR_NUMBER" | tee -a "$CHECKS_TEMP_FILE" || true
+
+          set +e
+          gh pr checks "$TEST_PR_NUMBER" --watch --fail-fast | tee -a "$CHECKS_TEMP_FILE"
+          CHECKS_WATCH_EXIT_CODE=${PIPESTATUS[0]}
+          set -e
+
+          gh pr checks "$TEST_PR_NUMBER" | tee -a "$CHECKS_TEMP_FILE" || true
+
+          if [[ -s "$CHECKS_TEMP_FILE" ]]
           then
             echo "::group::Temp file content"
-            cat $CHECKS_TEMP_FILE
+            cat "$CHECKS_TEMP_FILE"
             echo "::endgroup::"
           else
             echo "checks-temp-file=" >> $GITHUB_OUTPUT;
           fi
 
-          gh pr checks "$TEST_PR_NUMBER" # Let check outcome determine the step exit code
+          exit "$CHECKS_WATCH_EXIT_CODE"
 
       - name: Report Checks
         if: ${{ always() && steps.check-pr.outputs.checks-temp-file != '' }}
@@ -436,36 +457,57 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TEST_PR_NUMBER: ${{ steps.open-pr.outputs.test-pr-number }}
+          EXPECTED_CHECK_NAME: Verify Dirty Push as App in Pull Request
         run: |
           CHECKS_TEMP_FILE="$(mktemp)"
           echo "checks-temp-file=$CHECKS_TEMP_FILE" >> $GITHUB_OUTPUT;
 
-          sleep 10
-          CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a $CHECKS_TEMP_FILE)
-          PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
+          WAIT_INTERVAL_SECONDS=10
+          WAIT_ATTEMPTS=36
+          EXPECTED_CHECK_FOUND="false"
 
-          while [[ $PENDING -gt 0 && -n "$PENDING" ]]
+          for ((ATTEMPT=1; ATTEMPT<=WAIT_ATTEMPTS; ATTEMPT++))
           do
-            echo "::group::Pending checks: $PENDING"
-            gh pr checks "$TEST_PR_NUMBER" --watch --fail-fast | tee -a $CHECKS_TEMP_FILE
+            CHECKS_JSON=$(gh pr checks "$TEST_PR_NUMBER" --json name,bucket,state,link 2>/dev/null || true)
+            EXPECTED_CHECK_COUNT=$(jq --arg expected "$EXPECTED_CHECK_NAME" '[.[] | select(.name | contains($expected))] | length' <<< "$CHECKS_JSON" 2>/dev/null || echo 0)
 
-            sleep 10
-            CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a $CHECKS_TEMP_FILE)
-            PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
+            if [[ "$EXPECTED_CHECK_COUNT" -gt 0 ]]
+            then
+              EXPECTED_CHECK_FOUND="true"
+              echo "::notice::Detected expected check '$EXPECTED_CHECK_NAME' for PR #$TEST_PR_NUMBER."
+              break
+            fi
 
-            echo "::endgroup::"
+            echo "::notice::Waiting for expected check '$EXPECTED_CHECK_NAME' on PR #$TEST_PR_NUMBER ($ATTEMPT/$WAIT_ATTEMPTS)."
+            sleep "$WAIT_INTERVAL_SECONDS"
           done
 
-          if [[ -s $CHECKS_TEMP_FILE ]]
+          if [[ "$EXPECTED_CHECK_FOUND" != "true" ]]
+          then
+            echo "::error::Timed out waiting for expected check '$EXPECTED_CHECK_NAME' on PR #$TEST_PR_NUMBER."
+            gh pr checks "$TEST_PR_NUMBER" | tee -a "$CHECKS_TEMP_FILE" || true
+            exit 1
+          fi
+
+          gh pr checks "$TEST_PR_NUMBER" | tee -a "$CHECKS_TEMP_FILE" || true
+
+          set +e
+          gh pr checks "$TEST_PR_NUMBER" --watch --fail-fast | tee -a "$CHECKS_TEMP_FILE"
+          CHECKS_WATCH_EXIT_CODE=${PIPESTATUS[0]}
+          set -e
+
+          gh pr checks "$TEST_PR_NUMBER" | tee -a "$CHECKS_TEMP_FILE" || true
+
+          if [[ -s "$CHECKS_TEMP_FILE" ]]
           then
             echo "::group::Temp file content"
-            cat $CHECKS_TEMP_FILE
+            cat "$CHECKS_TEMP_FILE"
             echo "::endgroup::"
           else
             echo "checks-temp-file=" >> $GITHUB_OUTPUT;
           fi
 
-          gh pr checks "$TEST_PR_NUMBER" # Let check outcome determine the step exit code
+          exit "$CHECKS_WATCH_EXIT_CODE"
 
       - name: Report Checks
         if: ${{ always() && steps.check-pr.outputs.checks-temp-file != '' }}
@@ -604,36 +646,57 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TEST_PR_NUMBER: ${{ steps.open-pr.outputs.test-pr-number }}
+          EXPECTED_CHECK_NAME: Verify Dirty Request Changes in Pull Request
         run: |
           CHECKS_TEMP_FILE="$(mktemp)"
           echo "checks-temp-file=$CHECKS_TEMP_FILE" >> $GITHUB_OUTPUT;
 
-          sleep 10
-          CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a $CHECKS_TEMP_FILE)
-          PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
+          WAIT_INTERVAL_SECONDS=10
+          WAIT_ATTEMPTS=36
+          EXPECTED_CHECK_FOUND="false"
 
-          while [[ $PENDING -gt 0 && -n "$PENDING" ]]
+          for ((ATTEMPT=1; ATTEMPT<=WAIT_ATTEMPTS; ATTEMPT++))
           do
-            echo "::group::Pending checks: $PENDING"
-            gh pr checks "$TEST_PR_NUMBER" --watch --fail-fast | tee -a $CHECKS_TEMP_FILE
+            CHECKS_JSON=$(gh pr checks "$TEST_PR_NUMBER" --json name,bucket,state,link 2>/dev/null || true)
+            EXPECTED_CHECK_COUNT=$(jq --arg expected "$EXPECTED_CHECK_NAME" '[.[] | select(.name | contains($expected))] | length' <<< "$CHECKS_JSON" 2>/dev/null || echo 0)
 
-            sleep 10
-            CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a $CHECKS_TEMP_FILE)
-            PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
+            if [[ "$EXPECTED_CHECK_COUNT" -gt 0 ]]
+            then
+              EXPECTED_CHECK_FOUND="true"
+              echo "::notice::Detected expected check '$EXPECTED_CHECK_NAME' for PR #$TEST_PR_NUMBER."
+              break
+            fi
 
-            echo "::endgroup::"
+            echo "::notice::Waiting for expected check '$EXPECTED_CHECK_NAME' on PR #$TEST_PR_NUMBER ($ATTEMPT/$WAIT_ATTEMPTS)."
+            sleep "$WAIT_INTERVAL_SECONDS"
           done
 
-          if [[ -s $CHECKS_TEMP_FILE ]]
+          if [[ "$EXPECTED_CHECK_FOUND" != "true" ]]
+          then
+            echo "::error::Timed out waiting for expected check '$EXPECTED_CHECK_NAME' on PR #$TEST_PR_NUMBER."
+            gh pr checks "$TEST_PR_NUMBER" | tee -a "$CHECKS_TEMP_FILE" || true
+            exit 1
+          fi
+
+          gh pr checks "$TEST_PR_NUMBER" | tee -a "$CHECKS_TEMP_FILE" || true
+
+          set +e
+          gh pr checks "$TEST_PR_NUMBER" --watch --fail-fast | tee -a "$CHECKS_TEMP_FILE"
+          CHECKS_WATCH_EXIT_CODE=${PIPESTATUS[0]}
+          set -e
+
+          gh pr checks "$TEST_PR_NUMBER" | tee -a "$CHECKS_TEMP_FILE" || true
+
+          if [[ -s "$CHECKS_TEMP_FILE" ]]
           then
             echo "::group::Temp file content"
-            cat $CHECKS_TEMP_FILE
+            cat "$CHECKS_TEMP_FILE"
             echo "::endgroup::"
           else
             echo "checks-temp-file=" >> $GITHUB_OUTPUT;
           fi
 
-          gh pr checks "$TEST_PR_NUMBER" # Let check outcome determine the step exit code
+          exit "$CHECKS_WATCH_EXIT_CODE"
 
       - name: Report Checks
         if: ${{ always() && steps.check-pr.outputs.checks-temp-file != '' }}
