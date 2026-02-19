@@ -275,16 +275,14 @@ jobs:
 
           WAIT_INTERVAL_SECONDS=10
           WAIT_ATTEMPTS=36
-          EXPECTED_CHECK_FOUND="false"
+          EXPECTED_CHECK_COUNT=0
 
           for ((ATTEMPT=1; ATTEMPT<=WAIT_ATTEMPTS; ATTEMPT++))
           do
-            CHECKS_JSON=$(gh pr checks "$TEST_PR_NUMBER" --json name,bucket,state,link 2>/dev/null || true)
-            EXPECTED_CHECK_COUNT=$(jq --arg expected "$EXPECTED_CHECK_NAME" '[.[] | select(.name | contains($expected))] | length' <<< "$CHECKS_JSON" 2>/dev/null || echo 0)
+            EXPECTED_CHECK_COUNT=$(gh pr checks "$TEST_PR_NUMBER" --json name --jq "[.[] | select(.name | contains(\"$EXPECTED_CHECK_NAME\"))] | length" 2>/dev/null || echo 0)
 
             if [[ "$EXPECTED_CHECK_COUNT" -gt 0 ]]
             then
-              EXPECTED_CHECK_FOUND="true"
               echo "::notice::Detected expected check '$EXPECTED_CHECK_NAME' for PR #$TEST_PR_NUMBER."
               break
             fi
@@ -293,14 +291,11 @@ jobs:
             sleep "$WAIT_INTERVAL_SECONDS"
           done
 
-          if [[ "$EXPECTED_CHECK_FOUND" != "true" ]]
+          if [[ "$EXPECTED_CHECK_COUNT" -eq 0 ]]
           then
             echo "::error::Timed out waiting for expected check '$EXPECTED_CHECK_NAME' on PR #$TEST_PR_NUMBER."
-            gh pr checks "$TEST_PR_NUMBER" | tee -a "$CHECKS_TEMP_FILE" || true
             exit 1
           fi
-
-          gh pr checks "$TEST_PR_NUMBER" | tee -a "$CHECKS_TEMP_FILE" || true
 
           set +e
           gh pr checks "$TEST_PR_NUMBER" --watch --fail-fast | tee -a "$CHECKS_TEMP_FILE"
@@ -464,16 +459,14 @@ jobs:
 
           WAIT_INTERVAL_SECONDS=10
           WAIT_ATTEMPTS=36
-          EXPECTED_CHECK_FOUND="false"
+          EXPECTED_CHECK_COUNT=0
 
           for ((ATTEMPT=1; ATTEMPT<=WAIT_ATTEMPTS; ATTEMPT++))
           do
-            CHECKS_JSON=$(gh pr checks "$TEST_PR_NUMBER" --json name,bucket,state,link 2>/dev/null || true)
-            EXPECTED_CHECK_COUNT=$(jq --arg expected "$EXPECTED_CHECK_NAME" '[.[] | select(.name | contains($expected))] | length' <<< "$CHECKS_JSON" 2>/dev/null || echo 0)
+            EXPECTED_CHECK_COUNT=$(gh pr checks "$TEST_PR_NUMBER" --json name --jq "[.[] | select(.name | contains(\"$EXPECTED_CHECK_NAME\"))] | length" 2>/dev/null || echo 0)
 
             if [[ "$EXPECTED_CHECK_COUNT" -gt 0 ]]
             then
-              EXPECTED_CHECK_FOUND="true"
               echo "::notice::Detected expected check '$EXPECTED_CHECK_NAME' for PR #$TEST_PR_NUMBER."
               break
             fi
@@ -482,14 +475,11 @@ jobs:
             sleep "$WAIT_INTERVAL_SECONDS"
           done
 
-          if [[ "$EXPECTED_CHECK_FOUND" != "true" ]]
+          if [[ "$EXPECTED_CHECK_COUNT" -eq 0 ]]
           then
             echo "::error::Timed out waiting for expected check '$EXPECTED_CHECK_NAME' on PR #$TEST_PR_NUMBER."
-            gh pr checks "$TEST_PR_NUMBER" | tee -a "$CHECKS_TEMP_FILE" || true
             exit 1
           fi
-
-          gh pr checks "$TEST_PR_NUMBER" | tee -a "$CHECKS_TEMP_FILE" || true
 
           set +e
           gh pr checks "$TEST_PR_NUMBER" --watch --fail-fast | tee -a "$CHECKS_TEMP_FILE"
@@ -653,16 +643,14 @@ jobs:
 
           WAIT_INTERVAL_SECONDS=10
           WAIT_ATTEMPTS=36
-          EXPECTED_CHECK_FOUND="false"
+          EXPECTED_CHECK_COUNT=0
 
           for ((ATTEMPT=1; ATTEMPT<=WAIT_ATTEMPTS; ATTEMPT++))
           do
-            CHECKS_JSON=$(gh pr checks "$TEST_PR_NUMBER" --json name,bucket,state,link 2>/dev/null || true)
-            EXPECTED_CHECK_COUNT=$(jq --arg expected "$EXPECTED_CHECK_NAME" '[.[] | select(.name | contains($expected))] | length' <<< "$CHECKS_JSON" 2>/dev/null || echo 0)
+            EXPECTED_CHECK_COUNT=$(gh pr checks "$TEST_PR_NUMBER" --json name --jq "[.[] | select(.name | contains(\"$EXPECTED_CHECK_NAME\"))] | length" 2>/dev/null || echo 0)
 
             if [[ "$EXPECTED_CHECK_COUNT" -gt 0 ]]
             then
-              EXPECTED_CHECK_FOUND="true"
               echo "::notice::Detected expected check '$EXPECTED_CHECK_NAME' for PR #$TEST_PR_NUMBER."
               break
             fi
@@ -671,14 +659,11 @@ jobs:
             sleep "$WAIT_INTERVAL_SECONDS"
           done
 
-          if [[ "$EXPECTED_CHECK_FOUND" != "true" ]]
+          if [[ "$EXPECTED_CHECK_COUNT" -eq 0 ]]
           then
             echo "::error::Timed out waiting for expected check '$EXPECTED_CHECK_NAME' on PR #$TEST_PR_NUMBER."
-            gh pr checks "$TEST_PR_NUMBER" | tee -a "$CHECKS_TEMP_FILE" || true
             exit 1
           fi
-
-          gh pr checks "$TEST_PR_NUMBER" | tee -a "$CHECKS_TEMP_FILE" || true
 
           set +e
           gh pr checks "$TEST_PR_NUMBER" --watch --fail-fast | tee -a "$CHECKS_TEMP_FILE"
