@@ -18,7 +18,7 @@ jobs:
     if: |-
       ${{
         !startsWith(github.head_ref, 'workflows/tests/') && ((
-          github.actor == 'dependabot[bot]' && 
+          github.actor == 'dependabot[bot]' &&
           github.event_name != 'push' &&
           github.event_name != 'pull_request'
         ) || (
@@ -44,6 +44,99 @@ jobs:
           TEST_ACTION_OUTPUT: ${{ steps.test-action.outputs.status }}
         run: |
           if [[ $TEST_ACTION_OUTPUT != "clean" ]]
+          then
+            exit 1;
+          fi
+
+  test_targets_multiline_clean:
+    name: Test Multiline Targets Clean
+    if: |-
+      ${{
+        !startsWith(github.head_ref, 'workflows/tests/') && ((
+          github.actor == 'dependabot[bot]' &&
+          github.event_name != 'push' &&
+          github.event_name != 'pull_request'
+        ) || (
+          github.actor != 'dependabot[bot]' &&
+          github.event_name != 'workflow_run'
+        ))
+      }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        if: ${{ github.event_name != 'workflow_run' }}
+
+      - uses: actions/checkout@v6
+        if: ${{ github.event_name == 'workflow_run' }}
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+
+      - name: Make non-target dirty
+        run: |
+          mkdir -p .targets-test
+          touch .targets-test/untargeted
+
+      - uses: ./
+        id: test-action
+        with:
+          fail-if-not-clean: false
+          push-if-not-clean: false
+          request-changes-if-not-clean: false
+          targets: |-
+            action.yml
+            README.md
+
+      - name: Verify outputs
+        env:
+          TEST_ACTION_OUTPUT: ${{ steps.test-action.outputs.status }}
+        run: |
+          if [[ $TEST_ACTION_OUTPUT != "clean" ]]
+          then
+            exit 1;
+          fi
+
+  test_targets_multiline_dirty:
+    name: Test Multiline Targets Dirty
+    if: |-
+      ${{
+        !startsWith(github.head_ref, 'workflows/tests/') && ((
+          github.actor == 'dependabot[bot]' &&
+          github.event_name != 'push' &&
+          github.event_name != 'pull_request'
+        ) || (
+          github.actor != 'dependabot[bot]' &&
+          github.event_name != 'workflow_run'
+        ))
+      }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        if: ${{ github.event_name != 'workflow_run' }}
+
+      - uses: actions/checkout@v6
+        if: ${{ github.event_name == 'workflow_run' }}
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+
+      - name: Make target dirty
+        run: |
+          echo "dirty" >> README.md
+
+      - uses: ./
+        id: test-action
+        with:
+          fail-if-not-clean: false
+          push-if-not-clean: false
+          request-changes-if-not-clean: false
+          targets: |-
+            action.yml
+            README.md
+
+      - name: Verify outputs
+        env:
+          TEST_ACTION_OUTPUT: ${{ steps.test-action.outputs.status }}
+        run: |
+          if [[ $TEST_ACTION_OUTPUT != "dirty" ]]
           then
             exit 1;
           fi
