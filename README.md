@@ -24,14 +24,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - name: Build
         run: |
           # replace the following line with the real build script
           touch some-build-artefact-newly-generated-in-the-build-process
 
-      - uses: CatChen/check-git-status-action@v1
+      - uses: CatChen/check-git-status-action@v2
         with:
           fail-if-not-clean: true # optional
           push-if-not-clean: false # optional
