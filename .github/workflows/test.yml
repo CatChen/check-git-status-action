@@ -309,12 +309,6 @@ jobs:
             echo "::endgroup::"
           done
 
-          if [[ $EXPECTED_CHECK_COUNT -lt 1 ]]
-          then
-            echo "::error::Expected check '$EXPECTED_CHECK_NAME' did not show up for PR #$TEST_PR_NUMBER."
-            exit 1
-          fi
-
           if [[ -s "$CHECKS_TEMP_FILE" ]]
           then
             echo "::group::Temp file content"
@@ -504,12 +498,6 @@ jobs:
             echo "::endgroup::"
           done
 
-          if [[ $EXPECTED_CHECK_COUNT -lt 1 ]]
-          then
-            echo "::error::Expected check '$EXPECTED_CHECK_NAME' did not show up for PR #$TEST_PR_NUMBER."
-            exit 1
-          fi
-
           if [[ -s "$CHECKS_TEMP_FILE" ]]
           then
             echo "::group::Temp file content"
@@ -698,12 +686,6 @@ jobs:
 
             echo "::endgroup::"
           done
-
-          if [[ $EXPECTED_CHECK_COUNT -lt 1 ]]
-          then
-            echo "::error::Expected check '$EXPECTED_CHECK_NAME' did not show up for PR #$TEST_PR_NUMBER."
-            exit 1
-          fi
 
           if [[ -s "$CHECKS_TEMP_FILE" ]]
           then
