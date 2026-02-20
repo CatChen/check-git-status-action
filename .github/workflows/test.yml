@@ -284,10 +284,10 @@ jobs:
           CHECK_RUNS=$(gh api \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            "/repos/$GITHUB_REPOSITORY/commits/$TEST_COMMIT/check-runs" 2>/dev/null)
+            "/repos/$GITHUB_REPOSITORY/commits/$TEST_COMMIT/check-runs")
           EXPECTED_CHECK_COUNT=$(echo "$CHECK_RUNS" |
             jq -r --arg expected "$EXPECTED_CHECK_NAME" \
-              '[.check_runs[]? | pick(.name, .conclusion, .status) | select(.name | contains($expected))] | length' 2>/dev/null || echo 0)
+              '[.check_runs[]? | pick(.name, .conclusion, .status) | select(.name | contains($expected))] | length')
 
           while [[ $PENDING -gt 0 || $EXPECTED_CHECK_COUNT -lt 1 ]]
           do
@@ -301,10 +301,10 @@ jobs:
             CHECK_RUNS=$(gh api \
               -H "Accept: application/vnd.github+json" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
-              "/repos/$GITHUB_REPOSITORY/commits/$TEST_COMMIT/check-runs" 2>/dev/null)
+              "/repos/$GITHUB_REPOSITORY/commits/$TEST_COMMIT/check-runs")
             EXPECTED_CHECK_COUNT=$(echo "$CHECK_RUNS" |
               jq -r --arg expected "$EXPECTED_CHECK_NAME" \
-                '[.check_runs[]? | pick(.name, .conclusion, .status) | select(.name | contains($expected))] | length' 2>/dev/null || echo 0)
+                '[.check_runs[]? | pick(.name, .conclusion, .status) | select(.name | contains($expected))] | length')
 
             echo "::endgroup::"
           done
@@ -479,10 +479,10 @@ jobs:
           CHECK_RUNS=$(gh api \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            "/repos/$GITHUB_REPOSITORY/commits/$TEST_COMMIT/check-runs" 2>/dev/null)
+            "/repos/$GITHUB_REPOSITORY/commits/$TEST_COMMIT/check-runs")
           EXPECTED_CHECK_COUNT=$(echo "$CHECK_RUNS" |
             jq -r --arg expected "$EXPECTED_CHECK_NAME" \
-              '[.check_runs[]? | pick(.name, .conclusion, .status) | select(.name | contains($expected))] | length' 2>/dev/null || echo 0)
+              '[.check_runs[]? | pick(.name, .conclusion, .status) | select(.name | contains($expected))] | length')
 
           while [[ $PENDING -gt 0 || $EXPECTED_CHECK_COUNT -lt 1 ]]
           do
@@ -496,10 +496,10 @@ jobs:
             CHECK_RUNS=$(gh api \
               -H "Accept: application/vnd.github+json" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
-              "/repos/$GITHUB_REPOSITORY/commits/$TEST_COMMIT/check-runs" 2>/dev/null)
+              "/repos/$GITHUB_REPOSITORY/commits/$TEST_COMMIT/check-runs")
             EXPECTED_CHECK_COUNT=$(echo "$CHECK_RUNS" |
               jq -r --arg expected "$EXPECTED_CHECK_NAME" \
-                '[.check_runs[]? | pick(.name, .conclusion, .status) | select(.name | contains($expected))] | length' 2>/dev/null || echo 0)
+                '[.check_runs[]? | pick(.name, .conclusion, .status) | select(.name | contains($expected))] | length')
 
             echo "::endgroup::"
           done
@@ -674,10 +674,10 @@ jobs:
           CHECK_RUNS=$(gh api \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            "/repos/$GITHUB_REPOSITORY/commits/$TEST_COMMIT/check-runs" 2>/dev/null)
+            "/repos/$GITHUB_REPOSITORY/commits/$TEST_COMMIT/check-runs")
           EXPECTED_CHECK_COUNT=$(echo "$CHECK_RUNS" |
             jq -r --arg expected "$EXPECTED_CHECK_NAME" \
-              '[.check_runs[]? | pick(.name, .conclusion, .status) | select(.name | contains($expected))] | length' 2>/dev/null || echo 0)
+              '[.check_runs[]? | pick(.name, .conclusion, .status) | select(.name | contains($expected))] | length')
 
           while [[ $PENDING -gt 0 || $EXPECTED_CHECK_COUNT -lt 1 ]]
           do
@@ -691,10 +691,10 @@ jobs:
             CHECK_RUNS=$(gh api \
               -H "Accept: application/vnd.github+json" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
-              "/repos/$GITHUB_REPOSITORY/commits/$TEST_COMMIT/check-runs" 2>/dev/null)
+              "/repos/$GITHUB_REPOSITORY/commits/$TEST_COMMIT/check-runs")
             EXPECTED_CHECK_COUNT=$(echo "$CHECK_RUNS" |
               jq -r --arg expected "$EXPECTED_CHECK_NAME" \
-                '[.check_runs[]? | pick(.name, .conclusion, .status) | select(.name | contains($expected))] | length' 2>/dev/null || echo 0)
+                '[.check_runs[]? | pick(.name, .conclusion, .status) | select(.name | contains($expected))] | length')
 
             echo "::endgroup::"
           done
