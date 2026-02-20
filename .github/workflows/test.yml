@@ -218,6 +218,7 @@ jobs:
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Make commit
+        id: make-test-commit
         env:
           SHA: ${{ github.sha }}
           RUN_NUMBER: ${{ github.run_number }}
@@ -235,7 +236,9 @@ jobs:
           touch $SHA
           git add -A
           git commit -am "Test commit for #$BASE_PR_NUMBER ($SHA) by $RUN_NUMBER-$RUN_ATTEMPT"
-          echo "::notice::Test commit is `git rev-parse --verify HEAD`"
+          TEST_COMMIT=$(git rev-parse --verify HEAD)
+          echo "test-commit=$TEST_COMMIT" >> $GITHUB_OUTPUT
+          echo "::notice::Test commit is $TEST_COMMIT"
 
       - name: Git push
         env:
@@ -268,41 +271,49 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TEST_PR_NUMBER: ${{ steps.open-pr.outputs.test-pr-number }}
+          TEST_COMMIT: ${{ steps.make-test-commit.outputs.test-commit }}
           EXPECTED_CHECK_NAME: Verify Dirty Push in Pull Request
         run: |
           CHECKS_TEMP_FILE="$(mktemp)"
           echo "checks-temp-file=$CHECKS_TEMP_FILE" >> $GITHUB_OUTPUT;
 
-          WAIT_INTERVAL_SECONDS=10
-          WAIT_ATTEMPTS=36
-          EXPECTED_CHECK_COUNT=0
+          sleep 10
+          CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a "$CHECKS_TEMP_FILE" || true)
+          PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
 
-          for ((ATTEMPT=1; ATTEMPT<=WAIT_ATTEMPTS; ATTEMPT++))
+          CHECK_RUNS=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "/repos/$GITHUB_REPOSITORY/commits/$TEST_COMMIT/check-runs" 2>/dev/null || true)
+          EXPECTED_CHECK_COUNT=$(echo "$CHECK_RUNS" |
+            jq -r --arg expected "$EXPECTED_CHECK_NAME" \
+              '[.check_runs[]? | pick(.name, .conclusion, .status) | select(.name | contains($expected))] | length' 2>/dev/null || echo 0)
+
+          while [[ $PENDING -gt 0 || $EXPECTED_CHECK_COUNT -lt 1 ]]
           do
-            EXPECTED_CHECK_COUNT=$(gh pr checks "$TEST_PR_NUMBER" --json name --jq "[.[] | select(.name | contains(\"$EXPECTED_CHECK_NAME\"))] | length" 2>/dev/null || echo 0)
+            echo "::group::Pending checks: $PENDING; expected checks: $EXPECTED_CHECK_COUNT/1"
+            gh pr checks "$TEST_PR_NUMBER" --watch --fail-fast | tee -a "$CHECKS_TEMP_FILE" || true
 
-            if [[ "$EXPECTED_CHECK_COUNT" -gt 0 ]]
-            then
-              echo "::notice::Detected expected check '$EXPECTED_CHECK_NAME' for PR #$TEST_PR_NUMBER."
-              break
-            fi
+            sleep 10
+            CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a "$CHECKS_TEMP_FILE" || true)
+            PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
 
-            echo "::notice::Waiting for expected check '$EXPECTED_CHECK_NAME' on PR #$TEST_PR_NUMBER ($ATTEMPT/$WAIT_ATTEMPTS)."
-            sleep "$WAIT_INTERVAL_SECONDS"
+            CHECK_RUNS=$(gh api \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "/repos/$GITHUB_REPOSITORY/commits/$TEST_COMMIT/check-runs" 2>/dev/null || true)
+            EXPECTED_CHECK_COUNT=$(echo "$CHECK_RUNS" |
+              jq -r --arg expected "$EXPECTED_CHECK_NAME" \
+                '[.check_runs[]? | pick(.name, .conclusion, .status) | select(.name | contains($expected))] | length' 2>/dev/null || echo 0)
+
+            echo "::endgroup::"
           done
 
-          if [[ "$EXPECTED_CHECK_COUNT" -eq 0 ]]
+          if [[ $EXPECTED_CHECK_COUNT -lt 1 ]]
           then
-            echo "::error::Timed out waiting for expected check '$EXPECTED_CHECK_NAME' on PR #$TEST_PR_NUMBER."
+            echo "::error::Expected check '$EXPECTED_CHECK_NAME' did not show up for PR #$TEST_PR_NUMBER."
             exit 1
           fi
-
-          set +e
-          gh pr checks "$TEST_PR_NUMBER" --watch --fail-fast | tee -a "$CHECKS_TEMP_FILE"
-          CHECKS_WATCH_EXIT_CODE=${PIPESTATUS[0]}
-          set -e
-
-          gh pr checks "$TEST_PR_NUMBER" | tee -a "$CHECKS_TEMP_FILE" || true
 
           if [[ -s "$CHECKS_TEMP_FILE" ]]
           then
@@ -313,7 +324,7 @@ jobs:
             echo "checks-temp-file=" >> $GITHUB_OUTPUT;
           fi
 
-          exit "$CHECKS_WATCH_EXIT_CODE"
+          gh pr checks "$TEST_PR_NUMBER" # Let check outcome determine the step exit code
 
       - name: Report Checks
         if: ${{ always() && steps.check-pr.outputs.checks-temp-file != '' }}
@@ -402,6 +413,7 @@ jobs:
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Make commit
+        id: make-test-commit
         env:
           SHA: ${{ github.sha }}
           RUN_NUMBER: ${{ github.run_number }}
@@ -419,7 +431,9 @@ jobs:
           touch $SHA
           git add -A
           git commit -am "Test commit for #$BASE_PR_NUMBER ($SHA) by $RUN_NUMBER-$RUN_ATTEMPT"
-          echo "::notice::Test commit is `git rev-parse --verify HEAD`"
+          TEST_COMMIT=$(git rev-parse --verify HEAD)
+          echo "test-commit=$TEST_COMMIT" >> $GITHUB_OUTPUT
+          echo "::notice::Test commit is $TEST_COMMIT"
 
       - name: Git push
         env:
@@ -452,41 +466,49 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TEST_PR_NUMBER: ${{ steps.open-pr.outputs.test-pr-number }}
+          TEST_COMMIT: ${{ steps.make-test-commit.outputs.test-commit }}
           EXPECTED_CHECK_NAME: Verify Dirty Push as App in Pull Request
         run: |
           CHECKS_TEMP_FILE="$(mktemp)"
           echo "checks-temp-file=$CHECKS_TEMP_FILE" >> $GITHUB_OUTPUT;
 
-          WAIT_INTERVAL_SECONDS=10
-          WAIT_ATTEMPTS=36
-          EXPECTED_CHECK_COUNT=0
+          sleep 10
+          CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a "$CHECKS_TEMP_FILE" || true)
+          PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
 
-          for ((ATTEMPT=1; ATTEMPT<=WAIT_ATTEMPTS; ATTEMPT++))
+          CHECK_RUNS=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "/repos/$GITHUB_REPOSITORY/commits/$TEST_COMMIT/check-runs" 2>/dev/null || true)
+          EXPECTED_CHECK_COUNT=$(echo "$CHECK_RUNS" |
+            jq -r --arg expected "$EXPECTED_CHECK_NAME" \
+              '[.check_runs[]? | pick(.name, .conclusion, .status) | select(.name | contains($expected))] | length' 2>/dev/null || echo 0)
+
+          while [[ $PENDING -gt 0 || $EXPECTED_CHECK_COUNT -lt 1 ]]
           do
-            EXPECTED_CHECK_COUNT=$(gh pr checks "$TEST_PR_NUMBER" --json name --jq "[.[] | select(.name | contains(\"$EXPECTED_CHECK_NAME\"))] | length" 2>/dev/null || echo 0)
+            echo "::group::Pending checks: $PENDING; expected checks: $EXPECTED_CHECK_COUNT/1"
+            gh pr checks "$TEST_PR_NUMBER" --watch --fail-fast | tee -a "$CHECKS_TEMP_FILE" || true
 
-            if [[ "$EXPECTED_CHECK_COUNT" -gt 0 ]]
-            then
-              echo "::notice::Detected expected check '$EXPECTED_CHECK_NAME' for PR #$TEST_PR_NUMBER."
-              break
-            fi
+            sleep 10
+            CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a "$CHECKS_TEMP_FILE" || true)
+            PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
 
-            echo "::notice::Waiting for expected check '$EXPECTED_CHECK_NAME' on PR #$TEST_PR_NUMBER ($ATTEMPT/$WAIT_ATTEMPTS)."
-            sleep "$WAIT_INTERVAL_SECONDS"
+            CHECK_RUNS=$(gh api \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "/repos/$GITHUB_REPOSITORY/commits/$TEST_COMMIT/check-runs" 2>/dev/null || true)
+            EXPECTED_CHECK_COUNT=$(echo "$CHECK_RUNS" |
+              jq -r --arg expected "$EXPECTED_CHECK_NAME" \
+                '[.check_runs[]? | pick(.name, .conclusion, .status) | select(.name | contains($expected))] | length' 2>/dev/null || echo 0)
+
+            echo "::endgroup::"
           done
 
-          if [[ "$EXPECTED_CHECK_COUNT" -eq 0 ]]
+          if [[ $EXPECTED_CHECK_COUNT -lt 1 ]]
           then
-            echo "::error::Timed out waiting for expected check '$EXPECTED_CHECK_NAME' on PR #$TEST_PR_NUMBER."
+            echo "::error::Expected check '$EXPECTED_CHECK_NAME' did not show up for PR #$TEST_PR_NUMBER."
             exit 1
           fi
-
-          set +e
-          gh pr checks "$TEST_PR_NUMBER" --watch --fail-fast | tee -a "$CHECKS_TEMP_FILE"
-          CHECKS_WATCH_EXIT_CODE=${PIPESTATUS[0]}
-          set -e
-
-          gh pr checks "$TEST_PR_NUMBER" | tee -a "$CHECKS_TEMP_FILE" || true
 
           if [[ -s "$CHECKS_TEMP_FILE" ]]
           then
@@ -497,7 +519,7 @@ jobs:
             echo "checks-temp-file=" >> $GITHUB_OUTPUT;
           fi
 
-          exit "$CHECKS_WATCH_EXIT_CODE"
+          gh pr checks "$TEST_PR_NUMBER" # Let check outcome determine the step exit code
 
       - name: Report Checks
         if: ${{ always() && steps.check-pr.outputs.checks-temp-file != '' }}
@@ -586,6 +608,7 @@ jobs:
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Make commit
+        id: make-test-commit
         env:
           SHA: ${{ github.sha }}
           RUN_NUMBER: ${{ github.run_number }}
@@ -603,7 +626,9 @@ jobs:
           touch $SHA
           git add -A
           git commit -am "Test commit for #$BASE_PR_NUMBER ($SHA) by $RUN_NUMBER-$RUN_ATTEMPT"
-          echo "::notice::Test commit is `git rev-parse --verify HEAD`"
+          TEST_COMMIT=$(git rev-parse --verify HEAD)
+          echo "test-commit=$TEST_COMMIT" >> $GITHUB_OUTPUT
+          echo "::notice::Test commit is $TEST_COMMIT"
 
       - name: Git push
         env:
@@ -636,41 +661,49 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TEST_PR_NUMBER: ${{ steps.open-pr.outputs.test-pr-number }}
+          TEST_COMMIT: ${{ steps.make-test-commit.outputs.test-commit }}
           EXPECTED_CHECK_NAME: Verify Dirty Request Changes in Pull Request
         run: |
           CHECKS_TEMP_FILE="$(mktemp)"
           echo "checks-temp-file=$CHECKS_TEMP_FILE" >> $GITHUB_OUTPUT;
 
-          WAIT_INTERVAL_SECONDS=10
-          WAIT_ATTEMPTS=36
-          EXPECTED_CHECK_COUNT=0
+          sleep 10
+          CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a "$CHECKS_TEMP_FILE" || true)
+          PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
 
-          for ((ATTEMPT=1; ATTEMPT<=WAIT_ATTEMPTS; ATTEMPT++))
+          CHECK_RUNS=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "/repos/$GITHUB_REPOSITORY/commits/$TEST_COMMIT/check-runs" 2>/dev/null || true)
+          EXPECTED_CHECK_COUNT=$(echo "$CHECK_RUNS" |
+            jq -r --arg expected "$EXPECTED_CHECK_NAME" \
+              '[.check_runs[]? | pick(.name, .conclusion, .status) | select(.name | contains($expected))] | length' 2>/dev/null || echo 0)
+
+          while [[ $PENDING -gt 0 || $EXPECTED_CHECK_COUNT -lt 1 ]]
           do
-            EXPECTED_CHECK_COUNT=$(gh pr checks "$TEST_PR_NUMBER" --json name --jq "[.[] | select(.name | contains(\"$EXPECTED_CHECK_NAME\"))] | length" 2>/dev/null || echo 0)
+            echo "::group::Pending checks: $PENDING; expected checks: $EXPECTED_CHECK_COUNT/1"
+            gh pr checks "$TEST_PR_NUMBER" --watch --fail-fast | tee -a "$CHECKS_TEMP_FILE" || true
 
-            if [[ "$EXPECTED_CHECK_COUNT" -gt 0 ]]
-            then
-              echo "::notice::Detected expected check '$EXPECTED_CHECK_NAME' for PR #$TEST_PR_NUMBER."
-              break
-            fi
+            sleep 10
+            CHECKS=$(gh pr checks "$TEST_PR_NUMBER" | tee -a "$CHECKS_TEMP_FILE" || true)
+            PENDING=$(echo "$CHECKS" | cut -f2 | grep pending | wc -l)
 
-            echo "::notice::Waiting for expected check '$EXPECTED_CHECK_NAME' on PR #$TEST_PR_NUMBER ($ATTEMPT/$WAIT_ATTEMPTS)."
-            sleep "$WAIT_INTERVAL_SECONDS"
+            CHECK_RUNS=$(gh api \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "/repos/$GITHUB_REPOSITORY/commits/$TEST_COMMIT/check-runs" 2>/dev/null || true)
+            EXPECTED_CHECK_COUNT=$(echo "$CHECK_RUNS" |
+              jq -r --arg expected "$EXPECTED_CHECK_NAME" \
+                '[.check_runs[]? | pick(.name, .conclusion, .status) | select(.name | contains($expected))] | length' 2>/dev/null || echo 0)
+
+            echo "::endgroup::"
           done
 
-          if [[ "$EXPECTED_CHECK_COUNT" -eq 0 ]]
+          if [[ $EXPECTED_CHECK_COUNT -lt 1 ]]
           then
-            echo "::error::Timed out waiting for expected check '$EXPECTED_CHECK_NAME' on PR #$TEST_PR_NUMBER."
+            echo "::error::Expected check '$EXPECTED_CHECK_NAME' did not show up for PR #$TEST_PR_NUMBER."
             exit 1
           fi
-
-          set +e
-          gh pr checks "$TEST_PR_NUMBER" --watch --fail-fast | tee -a "$CHECKS_TEMP_FILE"
-          CHECKS_WATCH_EXIT_CODE=${PIPESTATUS[0]}
-          set -e
-
-          gh pr checks "$TEST_PR_NUMBER" | tee -a "$CHECKS_TEMP_FILE" || true
 
           if [[ -s "$CHECKS_TEMP_FILE" ]]
           then
@@ -681,7 +714,7 @@ jobs:
             echo "checks-temp-file=" >> $GITHUB_OUTPUT;
           fi
 
-          exit "$CHECKS_WATCH_EXIT_CODE"
+          gh pr checks "$TEST_PR_NUMBER" # Let check outcome determine the step exit code
 
       - name: Report Checks
         if: ${{ always() && steps.check-pr.outputs.checks-temp-file != '' }}
