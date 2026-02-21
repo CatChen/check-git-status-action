@@ -165,6 +165,8 @@ jobs:
           fail-if-not-clean: false
           push-if-not-clean: false
           request-changes-if-not-clean: true
+          comment-if-not-clean: true
+          comment-message: 'Changes detected by Check Git Status Action (comment)'
 
       - name: Verify outputs
         env:
@@ -192,6 +194,15 @@ jobs:
           REVIEW_DECISION=$(gh pr status --json reviewDecision -q .currentBranch.reviewDecision)
           echo "::notice::Review decision is $REVIEW_DECISION"
           if [[ $REVIEW_DECISION != "CHANGES_REQUESTED" ]]
+          then
+            exit 1;
+          fi
+
+          PR_NUMBER=$(gh pr view --json number -q .number)
+          COMMENT_COUNT=$(gh pr view "$PR_NUMBER" --json comments \
+            --jq '[.comments[] | select(.body == "Changes detected by Check Git Status Action (comment)")] | length')
+          echo "::notice::Matching comment count is $COMMENT_COUNT"
+          if [[ $COMMENT_COUNT -lt 1 ]]
           then
             exit 1;
           fi
