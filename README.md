@@ -40,6 +40,7 @@ jobs:
           push-token: ${{ secrets.GITHUB_TOKEN }} # optional
           request-changes-token: ${{ secrets.GITHUB_TOKEN }} # optional
           commit-message: 'Changes detected by Check Git Status Action' # optional
+          push-strategy: 'force-with-lease' # optional
           request-changes-comment: 'Changes detected by Check Git Status Action' # optional
           comment-message: 'Changes detected by Check Git Status Action' # optional
           targets: '.' #optional
@@ -78,6 +79,14 @@ The default value is `${{ github.token }}`, which is the GitHub token generated 
 ### `commit-message`
 
 When `push-if-not-clean` is set to `true` and `git status` is not clean this option will be used as the commit message when committing the changes. Its default value is `"Changes detected by Check Git Status Action"`.
+
+### `push-strategy`
+
+Controls how this action pushes updates when `push-if-not-clean` is `true`. Supported values are:
+
+- `force-with-lease` (default): safer force push that only updates if the remote ref matches what was fetched.
+- `normal`: regular push without any force flags.
+- `force`: hard force push (`--force`).
 
 ### `request-changes-comment`
 
