@@ -122,7 +122,7 @@ runs:
           echo "status=clean" >> $GITHUB_OUTPUT
           echo "::notice::Git status is clean"
         fi
-        echo '::endgroup'
+        echo '::endgroup::'
 
     - id: get-tokens
       name: Get tokens
@@ -159,7 +159,7 @@ runs:
           PUSH_TOKEN="$LEGACY_TOKEN"
         fi
         echo "push-token=$PUSH_TOKEN" >> $GITHUB_OUTPUT
-        echo '::endgroup'
+        echo '::endgroup::'
 
     - id: gh-pr-review
       name: gh pr review
@@ -231,7 +231,7 @@ runs:
         fi
         echo "user-login=$USER_LOGIN" >> $GITHUB_OUTPUT
         echo "user-global-id=$USER_GLOBAL_ID" >> $GITHUB_OUTPUT
-        echo '::endgroup'
+        echo '::endgroup::'
 
     - id: get-git-user
       name: Get git user
@@ -290,7 +290,7 @@ runs:
 
         echo "user-name=$USER_NAME" >> $GITHUB_OUTPUT
         echo "user-email=$USER_EMAIL" >> $GITHUB_OUTPUT
-        echo '::endgroup'
+        echo '::endgroup::'
 
     - id: git-config
       name: git config
@@ -310,7 +310,7 @@ runs:
         echo "::notice::Set git user name: $USER_NAME"
         git config --global user.email "$USER_EMAIL"
         echo "::notice::Set git user email: $USER_EMAIL"
-        echo '::groupend::'
+        echo '::endgroup::'
 
     - id: gh-auth
       name: gh auth
@@ -355,7 +355,7 @@ runs:
         git add -- "${TARGET_PATHS[@]}"
         git commit -m "$COMMIT_MESSAGE"
         echo "sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-        echo '::groupend::'
+        echo '::endgroup::'
 
     - id: git-fetch
       name: git fetch
