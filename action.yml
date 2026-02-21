@@ -34,10 +34,6 @@ inputs:
     description: 'The commit message to use when `push-if-not-clean` is `true` and there are changes.'
     required: false
     default: 'Changes detected by Check Git Status Action'
-  push-strategy:
-    description: 'Push strategy to use when pushing changes: `force-with-lease` (default), `force`, or `normal`.'
-    required: false
-    default: 'force-with-lease'
   request-changes-comment:
     description: 'The comment to use when `request-changes-if-not-clean` is `true` and there are changes.'
     required: false
@@ -391,37 +387,15 @@ runs:
       env:
         BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
         GIT_REMOTE: ${{ steps.gh-auth.outputs.git-remote }}
-        PUSH_STRATEGY_INPUT: ${{ inputs.push-strategy }}
       run: |
         echo '::group::git push'
-
-        PUSH_STRATEGY="$PUSH_STRATEGY_INPUT"
-
-        PUSH_ARGS=()
-        case "$PUSH_STRATEGY" in
-          normal)
-            ;;
-          force-with-lease)
-            PUSH_ARGS+=(--force-with-lease)
-            ;;
-          force)
-            PUSH_ARGS+=(--force)
-            ;;
-          *)
-            echo "::error::Invalid push-strategy '$PUSH_STRATEGY'. Supported values: normal, force-with-lease, force."
-            exit 1
-            ;;
-        esac
-
-        echo "::notice::Using push strategy: $PUSH_STRATEGY"
-
         if [[ -n "$GIT_REMOTE"  ]]
         then
           echo "::notice::Push to $GIT_REMOTE HEAD:refs/heads/$BRANCH_NAME"
-          git push "${PUSH_ARGS[@]}" --set-upstream "$GIT_REMOTE" "HEAD:refs/heads/$BRANCH_NAME"
+          git push -f --set-upstream "$GIT_REMOTE" "HEAD:refs/heads/$BRANCH_NAME"
         else
           echo "::notice::Push to origin HEAD:refs/heads/$BRANCH_NAME"
-          git push "${PUSH_ARGS[@]}" --set-upstream origin "HEAD:refs/heads/$BRANCH_NAME"
+          git push -f --set-upstream origin "HEAD:refs/heads/$BRANCH_NAME"
         fi
         echo '::endgroup::'
 
