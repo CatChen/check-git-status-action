@@ -129,7 +129,7 @@ runs:
       if: |-
         ${{
           steps.git-status.outputs.status == 'dirty' &&
-          (inputs.request-changes-if-not-clean == 'true' || inputs.comment-if-not-clean == 'true' || inputs.push-if-not-clean == 'true') && 
+          (inputs.request-changes-if-not-clean == 'true' || inputs.push-if-not-clean == 'true') && 
           github.event_name == 'pull_request'
         }}
       shell: bash
@@ -188,7 +188,7 @@ runs:
         }}
       shell: bash
       env:
-        GH_TOKEN: ${{ steps.get-tokens.outputs.request-changes-token }}
+        GH_TOKEN: ${{ github.token }}
         COMMENT_MESSAGE: ${{ inputs.comment-message }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
