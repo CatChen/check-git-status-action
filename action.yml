@@ -13,6 +13,10 @@ inputs:
     description: 'Request change when in the context of a Pull Request if git status is not clean.'
     required: false
     default: true
+  comment-if-not-clean:
+    description: 'Comment when in the context of a Pull Request if git status is not clean.'
+    required: false
+    default: false
   github-token:
     description: 'GitHub token to use when pushing new changes.'
     required: false
@@ -32,6 +36,10 @@ inputs:
     default: 'Changes detected by Check Git Status Action'
   request-changes-comment:
     description: 'The comment to use when `request-changes-if-not-clean` is `true` and there are changes.'
+    required: false
+    default: 'Changes detected by Check Git Status Action'
+  comment-message:
+    description: 'The comment to use when `comment-if-not-clean` is `true` and there are changes.'
     required: false
     default: 'Changes detected by Check Git Status Action'
   targets:
@@ -168,6 +176,24 @@ runs:
       run: |
         echo '::group::gh pr review'
         gh pr review -rb "$REQUEST_CHANGES_COMMENT"
+        echo '::endgroup::'
+
+    - id: gh-pr-comment
+      name: gh pr comment
+      if: |-
+        ${{
+          steps.git-status.outputs.status == 'dirty' &&
+          inputs.comment-if-not-clean == 'true' &&
+          github.event_name == 'pull_request'
+        }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        COMMENT_MESSAGE: ${{ inputs.comment-message }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: |
+        echo '::group::gh pr comment'
+        gh pr comment "$PR_NUMBER" --body "$COMMENT_MESSAGE"
         echo '::endgroup::'
 
     - id: get-login

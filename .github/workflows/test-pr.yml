@@ -195,3 +195,64 @@ jobs:
           then
             exit 1;
           fi
+
+  test_dirty_comment_in_pull_request:
+    name: Test Dirty Comment in Pull Request
+    if: ${{ startsWith(github.head_ref, 'workflows/tests/comment/') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Make dirty
+        run: |
+          touch `git rev-parse --verify HEAD`
+
+      - uses: ./
+        id: test-action
+        with:
+          fail-if-not-clean: false
+          push-if-not-clean: false
+          request-changes-if-not-clean: false
+          comment-if-not-clean: true
+          comment-message: 'Changes detected by Check Git Status Action (comment-only)'
+
+      - name: Verify outputs
+        env:
+          TEST_ACTION_OUTPUT: ${{ steps.test-action.outputs.status }}
+        run: |
+          if [[ $TEST_ACTION_OUTPUT != "dirty" ]]
+          then
+            exit 1;
+          fi
+
+  verify_dirty_comment_in_pull_request:
+    name: Verify Dirty Comment in Pull Request
+    if: ${{ startsWith(github.head_ref, 'workflows/tests/comment/') }}
+    needs: test_dirty_comment_in_pull_request
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Verify comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REVIEW_DECISION=$(gh pr status --json reviewDecision -q .currentBranch.reviewDecision)
+          echo "::notice::Review decision is $REVIEW_DECISION"
+          if [[ $REVIEW_DECISION == "CHANGES_REQUESTED" ]]
+          then
+            exit 1;
+          fi
+
+          PR_NUMBER=$(gh pr view --json number -q .number)
+          COMMENT_COUNT=$(gh pr view "$PR_NUMBER" --json comments \
+            --jq '[.comments[] | select(.body == "Changes detected by Check Git Status Action (comment-only)")] | length')
+          echo "::notice::Matching comment count is $COMMENT_COUNT"
+          if [[ $COMMENT_COUNT -lt 1 ]]
+          then
+            exit 1;
+          fi
