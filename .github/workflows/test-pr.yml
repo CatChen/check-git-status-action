@@ -102,6 +102,7 @@ jobs:
           fail-if-not-clean: false
           push-if-not-clean: true
           request-changes-if-not-clean: false
+          push-strategy: force
           push-token: ${{ steps.get-github-app-token.outputs.token }}
 
       - name: Verify outputs
