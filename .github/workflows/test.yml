@@ -221,6 +221,7 @@ jobs:
         id: make-test-commit
         env:
           SHA: ${{ github.sha }}
+          JOB_NAME: ${{ github.job }}
           RUN_NUMBER: ${{ github.run_number }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
           BASE_BRANCH_NAME: ${{ github.head_ref }}
@@ -233,7 +234,7 @@ jobs:
           echo "::notice::Base commit is `git rev-parse --verify HEAD`"
           echo "::notice::Test branch is $TEST_BRANCH_NAME"
           git checkout -b "$TEST_BRANCH_NAME"
-          touch $SHA
+          echo "Created by $JOB_NAME" > "$SHA"
           git add -A
           git commit -am "Test commit for #$BASE_PR_NUMBER ($SHA) by $RUN_NUMBER-$RUN_ATTEMPT"
           TEST_COMMIT=$(git rev-parse --verify HEAD)
@@ -410,6 +411,7 @@ jobs:
         id: make-test-commit
         env:
           SHA: ${{ github.sha }}
+          JOB_NAME: ${{ github.job }}
           RUN_NUMBER: ${{ github.run_number }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
           BASE_BRANCH_NAME: ${{ github.head_ref }}
@@ -422,7 +424,7 @@ jobs:
           echo "::notice::Base commit is `git rev-parse --verify HEAD`"
           echo "::notice::Test branch is $TEST_BRANCH_NAME"
           git checkout -b "$TEST_BRANCH_NAME"
-          touch $SHA
+          echo "Created by $JOB_NAME" > "$SHA"
           git add -A
           git commit -am "Test commit for #$BASE_PR_NUMBER ($SHA) by $RUN_NUMBER-$RUN_ATTEMPT"
           TEST_COMMIT=$(git rev-parse --verify HEAD)
