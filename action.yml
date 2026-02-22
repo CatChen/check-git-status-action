@@ -110,10 +110,18 @@ runs:
           against=$(git hash-object -t tree /dev/null)
         fi
 
-        mapfile -t TARGET_PATHS < <(printf '%s' "$TARGETS")
+        TARGET_PATHS=()
+        while IFS= read -r TARGET_PATH || [[ -n "$TARGET_PATH" ]]
+        do
+          TARGET_PATHS+=("$TARGET_PATH")
+        done < <(printf '%s' "$TARGETS")
 
         git add -N -- "${TARGET_PATHS[@]}"
-        mapfile -t CHANGED_FILES < <(git diff --name-only "$against" -- "${TARGET_PATHS[@]}")
+        CHANGED_FILES=()
+        while IFS= read -r CHANGED_FILE || [[ -n "$CHANGED_FILE" ]]
+        do
+          CHANGED_FILES+=("$CHANGED_FILE")
+        done < <(git diff --name-only "$against" -- "${TARGET_PATHS[@]}")
         if [[ ${#CHANGED_FILES[@]} -gt 0 ]]
         then
           echo "status=dirty" >> $GITHUB_OUTPUT
@@ -354,7 +362,11 @@ runs:
         TARGETS: ${{ steps.sanitize-targets.outputs.targets }}
       run: |
         echo '::group::git commit'
-        mapfile -t TARGET_PATHS < <(printf '%s' "$TARGETS")
+        TARGET_PATHS=()
+        while IFS= read -r TARGET_PATH || [[ -n "$TARGET_PATH" ]]
+        do
+          TARGET_PATHS+=("$TARGET_PATH")
+        done < <(printf '%s' "$TARGETS")
 
         git add -- "${TARGET_PATHS[@]}"
         git commit -m "$COMMIT_MESSAGE"
