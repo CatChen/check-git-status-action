@@ -84,7 +84,7 @@ When `push-if-not-clean` is set to `true` and `git status` is not clean this opt
 
 Controls how this action pushes updates when `push-if-not-clean` is `true`. Supported values are:
 
-- `force-with-lease` (default): safer force push that only updates if the remote ref matches what was fetched.
+- `force-with-lease` (default): safer force push that only updates if the remote ref still matches the pull request head SHA from the event payload.
 - `normal`: regular push without any force flags.
 - `force`: hard force push (`--force`).
 
