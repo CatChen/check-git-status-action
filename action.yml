@@ -437,6 +437,7 @@ runs:
       shell: bash
       env:
         BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
+        EXPECTED_REMOTE_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         GIT_REMOTE: ${{ steps.gh-auth.outputs.git-remote }}
         PUSH_STRATEGY_INPUT: ${{ inputs.push-strategy }}
       run: |
@@ -449,7 +450,7 @@ runs:
           normal)
             ;;
           force-with-lease)
-            PUSH_ARGS+=(--force-with-lease)
+            PUSH_ARGS+=(--force-with-lease="refs/heads/$BRANCH_NAME:$EXPECTED_REMOTE_HEAD_SHA")
             ;;
           force)
             PUSH_ARGS+=(--force)
