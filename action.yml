@@ -141,8 +141,7 @@ runs:
       if: |-
         ${{
           steps.git-status.outputs.status == 'dirty' &&
-          (inputs.request-changes-if-not-clean == 'true' || inputs.push-if-not-clean == 'true') && 
-          github.event_name == 'pull_request'
+          (inputs.request-changes-if-not-clean == 'true' || inputs.push-if-not-clean == 'true')
         }}
       shell: bash
       env:
@@ -173,21 +172,56 @@ runs:
         echo "push-token=$PUSH_TOKEN" >> $GITHUB_OUTPUT
         echo '::endgroup::'
 
+    - id: get-pr-number
+      name: Get PR number
+      if: |-
+        ${{
+          steps.git-status.outputs.status == 'dirty' &&
+          (inputs.request-changes-if-not-clean == 'true' || inputs.comment-if-not-clean == 'true')
+        }}
+      shell: bash
+      env:
+        REQUEST_CHANGES_IF_NOT_CLEAN: ${{ inputs.request-changes-if-not-clean }}
+        COMMENT_IF_NOT_CLEAN: ${{ inputs.comment-if-not-clean }}
+        EVENT_PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+        EVENT_WORKFLOW_RUN_PULL_REQUEST_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+      run: |
+        echo '::group::Get PR number'
+        PR_NUMBER="$EVENT_PULL_REQUEST_NUMBER"
+        if [[ -z "$PR_NUMBER" ]]
+        then
+          PR_NUMBER="$EVENT_WORKFLOW_RUN_PULL_REQUEST_NUMBER"
+        fi
+
+        if [[ -z "$PR_NUMBER" ]]
+        then
+          if [[ "$REQUEST_CHANGES_IF_NOT_CLEAN" = "true" ]] || [[ "$COMMENT_IF_NOT_CLEAN" = "true" ]]
+          then
+            echo "::error::request-changes-if-not-clean and/or comment-if-not-clean is true, but no pull request number was found in the event payload."
+          fi
+        else
+          echo "::notice::Pull request number is $PR_NUMBER"
+        fi
+
+        echo "pr-number=$PR_NUMBER" >> $GITHUB_OUTPUT
+        echo '::endgroup::'
+
     - id: gh-pr-review
       name: gh pr review
       if: |-
         ${{
           steps.git-status.outputs.status == 'dirty' && 
-          inputs.request-changes-if-not-clean == 'true' && 
-          github.event_name == 'pull_request'
+          inputs.request-changes-if-not-clean == 'true' &&
+          steps.get-pr-number.outputs.pr-number != ''
         }}
       shell: bash
       env:
         GH_TOKEN: ${{ steps.get-tokens.outputs.request-changes-token }}
+        PR_NUMBER: ${{ steps.get-pr-number.outputs.pr-number }}
         REQUEST_CHANGES_COMMENT: ${{ inputs.request-changes-comment }}
       run: |
         echo '::group::gh pr review'
-        gh pr review -rb "$REQUEST_CHANGES_COMMENT"
+        gh pr review "$PR_NUMBER" -rb "$REQUEST_CHANGES_COMMENT"
         echo '::endgroup::'
 
     - id: gh-pr-comment
@@ -196,15 +230,16 @@ runs:
         ${{
           steps.git-status.outputs.status == 'dirty' &&
           inputs.comment-if-not-clean == 'true' &&
-          github.event_name == 'pull_request'
+          steps.get-pr-number.outputs.pr-number != ''
         }}
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
+        PR_NUMBER: ${{ steps.get-pr-number.outputs.pr-number }}
         COMMENT_MESSAGE: ${{ inputs.comment-message }}
       run: |
         echo '::group::gh pr comment'
-        gh pr comment --body "$COMMENT_MESSAGE"
+        gh pr comment "$PR_NUMBER" --body "$COMMENT_MESSAGE"
         echo '::endgroup::'
 
     - id: get-login
