@@ -247,7 +247,8 @@ runs:
       if: |-
         ${{
           steps.git-status.outputs.status == 'dirty' && 
-          inputs.push-if-not-clean == 'true'
+          inputs.push-if-not-clean == 'true' &&
+          github.event_name == 'pull_request'
         }}
       uses: CatChen/config-git-with-token-action@v2
       with:
