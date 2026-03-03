@@ -1,13 +1,12 @@
 # check-git-status-action
 
 [![Test](https://github.com/CatChen/check-git-status-action/actions/workflows/test.yml/badge.svg?branch=main&event=push)](https://github.com/CatChen/check-git-status-action/actions/workflows/test.yml)
-[![Release](https://github.com/CatChen/check-git-status-action/actions/workflows/release.yml/badge.svg?branch=main&event=schedule)](https://github.com/CatChen/check-git-status-action/actions/workflows/release.yml)
 
 Do you check in dependency packages or build artefacts? If yes this GitHub Action helps you ensure they are not out-of-sync. Examples:
 
-1. Say we run [Prettier](https://prettier.io/) or [`oxfmt`](https://github.com/oxc-project/oxc/tree/main/crates/oxfmt) in CI and require developers to commit any formatting updates. We can run the formatter and then use this Action to fail the workflow, request changes, or auto-commit the formatting diff when files are out of sync.
-2. Say we set up to [run Yarn offline](https://classic.yarnpkg.com/blog/2016/11/24/offline-mirror/) and we check in Yarn offline mirror. We want to make sure the offline mirror is in sync with the dependencies declared in the `package.json`. We can set up a GitHub Workflow to run `yarn install` and then use this Action to check if the offline mirror is changed.
-3. Say we generate TypeScript type definitions from [JSON Schemas](https://json-schema.org/). The generated TypeScript files are part of the codebase. We want to make sure people remember to regenerate these files when they modify any JSON Schema. We can use a GitHub Workflow to run the code generation and then use this GitHub Action to check if the files are changed. If they are changed this Action can commit the changes and add them to the Pull Request.
+1. Say we run [Prettier](https://prettier.io/) or [Oxfmt](https://github.com/oxc-project/oxc/tree/main/crates/oxfmt) in CI and require developers to commit any formatting updates. We can run the formatter and then use this Action to fail the workflow, request changes, or auto-commit the formatting diff when files are out of sync.
+2. Say we generate TypeScript type definitions from [JSON Schemas](https://json-schema.org/). The generated TypeScript files are part of the codebase. We want to make sure people remember to regenerate these files when they modify any JSON Schema. We can use a GitHub Workflow to run the code generation and then use this GitHub Action to check if the files are changed. If they are changed this Action can commit the changes and add them to the Pull Request.
+3. Say we set up to [run Yarn offline](https://classic.yarnpkg.com/blog/2016/11/24/offline-mirror/) and we check in Yarn offline mirror. We want to make sure the offline mirror is in sync with the dependencies declared in the `package.json`. We can set up a GitHub Workflow to run `yarn install` and then use this Action to check if the offline mirror is changed.
 
 ## Usage
 
