@@ -28,10 +28,10 @@ jobs:
       }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: ${{ github.event_name != 'workflow_run' }}
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: ${{ github.event_name == 'workflow_run' }}
         with:
           ref: ${{ github.event.workflow_run.head_branch }}
@@ -63,10 +63,10 @@ jobs:
       }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: ${{ github.event_name != 'workflow_run' }}
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: ${{ github.event_name == 'workflow_run' }}
         with:
           ref: ${{ github.event.workflow_run.head_branch }}
@@ -110,10 +110,10 @@ jobs:
       }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: ${{ github.event_name != 'workflow_run' }}
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: ${{ github.event_name == 'workflow_run' }}
         with:
           ref: ${{ github.event.workflow_run.head_branch }}
@@ -156,10 +156,10 @@ jobs:
       }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: ${{ github.event_name != 'workflow_run' }}
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: ${{ github.event_name == 'workflow_run' }}
         with:
           ref: ${{ github.event.workflow_run.head_branch }}
@@ -201,12 +201,12 @@ jobs:
       }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: ${{ github.event_name != 'workflow_run' }}
         with:
           fetch-depth: 0
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: ${{ github.event_name == 'workflow_run' }}
         with:
           ref: ${{ github.event.workflow_run.head_branch }}
@@ -390,12 +390,12 @@ jobs:
       }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: ${{ github.event_name != 'workflow_run' }}
         with:
           fetch-depth: 0
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: ${{ github.event_name == 'workflow_run' }}
         with:
           ref: ${{ github.event.workflow_run.head_branch }}
@@ -579,12 +579,12 @@ jobs:
       }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: ${{ github.event_name != 'workflow_run' }}
         with:
           fetch-depth: 0
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: ${{ github.event_name == 'workflow_run' }}
         with:
           ref: ${{ github.event.workflow_run.head_branch }}
@@ -769,12 +769,12 @@ jobs:
       }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: ${{ github.event_name != 'workflow_run' }}
         with:
           fetch-depth: 0
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: ${{ github.event_name == 'workflow_run' }}
         with:
           ref: ${{ github.event.workflow_run.head_branch }}
